@@ -105,10 +105,10 @@ endmodule
 
 module sameRankDetector(
     input [3:0] rank0, rank1, rank2, rank3, rank4,
-    output existThreeOfAKind, isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse
+    output existOnePair, isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse
 );
 
-	wire notExistThreeOfAKind;
+	wire existTwoPair, existThreeOfAKind, notExistThreeOfAKind;
 	wire notFourOfAKind, notFullHouse, notThreeOfAKind, notTwoPair, notOnePair;
     wire isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34;
     wire isSameRank012, isSameRank013, isSameRank014, isSameRank023, isSameRank024, isSameRank034, isSameRank123, isSameRank124, isSameRank134, isSameRank234;
@@ -182,7 +182,7 @@ module sameRankDetector(
 	OR4 or4_two_pair_2(temp2, two_pair[4], two_pair[5], two_pair[6], two_pair[7]);
 	OR4 or4_two_pair_3(temp3, two_pair[8], two_pair[9], two_pair[10], two_pair[11]);
 	OR3 or3_two_pair(temp4, two_pair[12], two_pair[13], two_pair[14]);
-	OR4 or4_two_pair(isExistTwoPair, temp1, temp2, temp3, temp4);
+	OR4 or4_two_pair(existTwoPair, temp1, temp2, temp3, temp4);
 
 
     // check if exist three of a kind
@@ -192,22 +192,22 @@ module sameRankDetector(
     OR4 orr_three_3(existThreeOfAKind, or_three_1, or_three_2, isSameRank134, isSameRank234);
 
 	// check if exist any pair
-    wire isAnyPair, or_pair_1, or_pair_2;
+    wire or_pair_1, or_pair_2;
     OR4 or4_pair_1(or_pair_1, isSameRank01, isSameRank02, isSameRank03, isSameRank04);
     OR4 or4_pair_2(or_pair_2, isSameRank12, isSameRank13, isSameRank14, isSameRank23);
-    OR4 isAnyPair_gate(isAnyPair, or_pair_1, or_pair_2, isSameRank24, isSameRank34);
+    OR4 isAnyPair_gate(existOnePair, or_pair_1, or_pair_2, isSameRank24, isSameRank34);
 
 	// full house
-	AN2 isFullHouse_gate(isFullHouse, isExistTwoPair, existThreeOfAKind);
+	AN2 isFullHouse_gate(isFullHouse, existTwoPair, existThreeOfAKind);
 
 	// three of a kind
 	AN3 threeOfAKind_gate(isThreeOfAKind, existThreeOfAKind, notFourOfAKind, notFullHouse); 
 
     // two pairs
-	AN4 twoPair_gate(isTwoPair, isExistTwoPair, notThreeOfAKind, notFourOfAKind, notFullHouse);
+	AN4 twoPair_gate(isTwoPair, existTwoPair, notThreeOfAKind, notFourOfAKind, notFullHouse);
 
 	// one pair
-	AN4 onePair_gate(isPair, isAnyPair, notTwoPair, notExistThreeOfAKind, notFourOfAKind);
+	AN4 onePair_gate(isPair, existOnePair, notTwoPair, notExistThreeOfAKind, notFourOfAKind);
 
 endmodule
 
@@ -248,7 +248,7 @@ module rankComparator2(
 	
 endmodule
 
-module checkIfLargerbyOne(
+module checkIfLargerbyOne( // check if rank1 is larger than rank2 by 1
 	output isLargerbyOne,
 	input [3:0] rank1,
 	input [3:0] rank2
@@ -267,119 +267,30 @@ module checkIfLargerbyOne(
 
 endmodule
 
-module sortbyRank(
+module checkIfDiffByOne( // check if abs(rank1 - rank2) = 1
+	output isDiffByOne,
+	input [3:0] rank1,
+	input [3:0] rank2
+);
+
+	wire [3:0] diff;
+	subtractor subtractor1(diff, rank1, rank2);
+
+	wire isLargerbyOne12, isLargerbyOne21;
+	checkIfLargerbyOne compare12(isLargerbyOne12, rank1, rank2);
+	checkIfLargerbyOne compare21(isLargerbyOne21, rank2, rank1);
+
+	OR2 isDiffByOne_gate(isDiffByOne, isLargerbyOne12, isLargerbyOne21);
+
+endmodule
+
+module sortByRank(
     input [3:0] rank0, rank1, rank2, rank3, rank4,
     output reg [3:0] sorted_rank0, sorted_rank1, sorted_rank2, sorted_rank3, sorted_rank4
 );
 
     reg [3:0] sorted_rank[4:0];
     reg [3:0] temp;
-
-
-
-	// use generate for
-	reg [3:0] rank[4:0];
-
-	always @(*)
-	begin
-		rank[0] = rank0;
-		rank[1] = rank1;
-		rank[2] = rank2;
-		rank[3] = rank3;
-		rank[4] = rank4;
-	end
-
-	// use generate for to generate compareResult
-	wire compareResult[4:0][4:0];
-
-	genvar r1, r2;
-	generate
-		for (r1 = 0; r1 < 5; r1 = r1 + 1)
-		begin
-			for (r2 = 0; r2 < 5; r2 = r2 + 1)
-			begin
-				if (r1 == r2)
-				begin
-					assign compareResult[r1][r2] = 1'b0;
-				end
-				else
-				begin
-					rankComparator2 compare_rank(compareResult[r1][r2], rank[r1], rank[r2]);
-				end
-			end
-		end
-	endgenerate
-
-	
-	// rankComparator2 compare_rank01(compareResult[0][0], rank0, rank1);
-	// rankComparator2 compare_rank02(compareResult[0][1], rank0, rank2);
-	// rankComparator2 compare_rank03(compareResult[0][2], rank0, rank3);
-	// rankComparator2 compare_rank04(compareResult[0][3], rank0, rank4);
-	// rankComparator2 compare_rank10(compareResult[1][0], rank1, rank0);
-	// rankComparator2 compare_rank12(compareResult[1][1], rank1, rank2);
-	// rankComparator2 compare_rank13(compareResult[1][2], rank1, rank3);
-	// rankComparator2 compare_rank14(compareResult[1][3], rank1, rank4);
-	// rankComparator2 compare_rank20(compareResult[2][0], rank2, rank0);
-	// rankComparator2 compare_rank21(compareResult[2][1], rank2, rank1);
-	// rankComparator2 compare_rank23(compareResult[2][2], rank2, rank3);
-	// rankComparator2 compare_rank24(compareResult[2][3], rank2, rank4);
-	// rankComparator2 compare_rank30(compareResult[3][0], rank3, rank0);
-	// rankComparator2 compare_rank31(compareResult[3][1], rank3, rank1);
-	// rankComparator2 compare_rank32(compareResult[3][2], rank3, rank2);
-	// rankComparator2 compare_rank34(compareResult[3][3], rank3, rank4);
-	// rankComparator2 compare_rank40(compareResult[4][0], rank4, rank0);
-	// rankComparator2 compare_rank41(compareResult[4][1], rank4, rank1);
-	// rankComparator2 compare_rank42(compareResult[4][2], rank4, rank2);
-	// rankComparator2 compare_rank43(compareResult[4][3], rank4, rank3);
-
-	
-
-
-	// if compareResult[i] has 4 1's, then rank[i] is the largest
-	wire isRank0Has4Ones, isRank1Has4Ones, isRank2Has4Ones, isRank3Has4Ones, isRank4Has4Ones;
-	AN4 isRank0Has4Ones_gate(isRank0Has4Ones, compareResult[0][0], compareResult[0][1], compareResult[0][2], compareResult[0][3]);
-	AN4 isRank1Has4Ones_gate(isRank1Has4Ones, compareResult[1][0], compareResult[1][1], compareResult[1][2], compareResult[1][3]);
-	AN4 isRank2Has4Ones_gate(isRank2Has4Ones, compareResult[2][0], compareResult[2][1], compareResult[2][2], compareResult[2][3]);
-	AN4 isRank3Has4Ones_gate(isRank3Has4Ones, compareResult[3][0], compareResult[3][1], compareResult[3][2], compareResult[3][3]);
-	AN4 isRank4Has4Ones_gate(isRank4Has4Ones, compareResult[4][0], compareResult[4][1], compareResult[4][2], compareResult[4][3]);
-
-	// if compareResult[i] has 3 1's, then rank[i] is the second largest
-	wire isRank0Has3Ones, isRank1Has3Ones, isRank2Has3Ones, isRank3Has3Ones, isRank4Has3Ones;
-
-	wire temp01, temp02, temp03, temp04, temp11, temp12, temp13, temp14, temp21, temp22, temp23, temp24, temp31, temp32, temp33, temp34, temp41, temp42, temp43, temp44;
-	AN3 isRank0Has3Ones1_gate(temp01, compareResult[0][0], compareResult[0][1], compareResult[0][2]);
-	AN3 isRank0Has3Ones2_gate(temp02, compareResult[0][0], compareResult[0][1], compareResult[0][3]);
-	AN3 isRank0Has3Ones3_gate(temp03, compareResult[0][0], compareResult[0][2], compareResult[0][3]);
-	AN3 isRank0Has3Ones4_gate(temp04, compareResult[0][1], compareResult[0][2], compareResult[0][3]);
-	AN4 isRank0Has3Ones_gate(isRank0Has3Ones, temp01, temp02, temp03, temp04);
-
-	AN3 isRank1Has3Ones1_gate(temp11, compareResult[1][0], compareResult[1][1], compareResult[1][2]);
-	AN3 isRank1Has3Ones2_gate(temp12, compareResult[1][0], compareResult[1][1], compareResult[1][3]);
-	AN3 isRank1Has3Ones3_gate(temp13, compareResult[1][0], compareResult[1][2], compareResult[1][3]);
-	AN3 isRank1Has3Ones4_gate(temp14, compareResult[1][1], compareResult[1][2], compareResult[1][3]);
-	AN4 isRank1Has3Ones_gate(isRank1Has3Ones, temp11, temp12, temp13, temp14);
-
-	AN3 isRank2Has3Ones1_gate(temp21, compareResult[2][0], compareResult[2][1], compareResult[2][2]);
-	AN3 isRank2Has3Ones2_gate(temp22, compareResult[2][0], compareResult[2][1], compareResult[2][3]);
-	AN3 isRank2Has3Ones3_gate(temp23, compareResult[2][0], compareResult[2][2], compareResult[2][3]);
-	AN3 isRank2Has3Ones4_gate(temp24, compareResult[2][1], compareResult[2][2], compareResult[2][3]);
-	AN4 isRank2Has3Ones_gate(isRank2Has3Ones, temp21, temp22, temp23, temp24);
-
-	AN3 isRank3Has3Ones1_gate(temp31, compareResult[3][0], compareResult[3][1], compareResult[3][2]);
-	AN3 isRank3Has3Ones2_gate(temp32, compareResult[3][0], compareResult[3][1], compareResult[3][3]);
-	AN3 isRank3Has3Ones3_gate(temp33, compareResult[3][0], compareResult[3][2], compareResult[3][3]);
-	AN3 isRank3Has3Ones4_gate(temp34, compareResult[3][1], compareResult[3][2], compareResult[3][3]);
-	AN4 isRank3Has3Ones_gate(isRank3Has3Ones, temp31, temp32, temp33, temp34);
-
-	AN3 isRank4Has3Ones1_gate(temp41, compareResult[4][0], compareResult[4][1], compareResult[4][2]);
-	AN3 isRank4Has3Ones2_gate(temp42, compareResult[4][0], compareResult[4][1], compareResult[4][3]);
-	AN3 isRank4Has3Ones3_gate(temp43, compareResult[4][0], compareResult[4][2], compareResult[4][3]);
-	AN3 isRank4Has3Ones4_gate(temp44, compareResult[4][1], compareResult[4][2], compareResult[4][3]);
-	AN4 isRank4Has3Ones_gate(isRank4Has3Ones, temp41, temp42, temp43, temp44);
-
-
-	// assign sorted_rank
-	
     integer i, j;
 	reg compare;
 
@@ -411,9 +322,7 @@ module sortbyRank(
         sorted_rank3 = sorted_rank[3];
         sorted_rank4 = sorted_rank[4];
     end
-
 endmodule
-
 
 module straightDetector(
 	input [3:0] rank0, rank1, rank2, rank3, rank4,
@@ -426,16 +335,16 @@ module straightDetector(
 	integer i;
 	integer j;
 
-	// if exist three of a kind, then it is not straight
-	wire existThreeOfAKind, notExistThreeOfAKind;
+	// if exist one pair, then it is not straight
+	wire existOnePair, notExistOnePair;
 	sameRankDetector sameRankDetector(
 		.rank0(rank0), .rank1(rank1), .rank2(rank2), .rank3(rank3), .rank4(rank4),
-		.existThreeOfAKind(existThreeOfAKind)
+		.existOnePair(existOnePair)
 	);
-	assign notExistThreeOfAKind = ~existThreeOfAKind;
+	IV notExistOnePair_gate(notExistOnePair, existOnePair);
 
 	// sort by rank
-	sortbyRank sortbyRank(
+	sortByRank sortByRank(
 		.rank0(rank0), .rank1(rank1), .rank2(rank2), .rank3(rank3), .rank4(rank4),
 		.sorted_rank0(sorted_rank0), .sorted_rank1(sorted_rank1), .sorted_rank2(sorted_rank2), .sorted_rank3(sorted_rank3), .sorted_rank4(sorted_rank4)
 	);
@@ -458,7 +367,7 @@ module straightDetector(
 	EO considerSpecialCase_gate(considerSpecialCase, isSpecialCase, isLargerbyOne01);
 	AN3 lastThreeCompare_gate(lastThreeCompare, isLargerbyOne12, isLargerbyOne23, isLargerbyOne34);
 
-	AN3 isStraight_gate(isStraight, considerSpecialCase, lastThreeCompare, notExistThreeOfAKind);
+	AN3 isStraight_gate(isStraight, considerSpecialCase, lastThreeCompare, notExistOnePair);
 
 endmodule
 
@@ -486,10 +395,10 @@ module poker(type, i0, i1, i2, i3, i4);
 	);
 
 	// same rank detector
-	wire existThreeOfAKind, isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse;
+	wire existOnePair, isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse;
 	sameRankDetector sameRankDetector(
 		.rank0(rank[0]), .rank1(rank[1]), .rank2(rank[2]), .rank3(rank[3]), .rank4(rank[4]),
-		.existThreeOfAKind(existThreeOfAKind), .isPair(isPair), .isTwoPair(isTwoPair), .isThreeOfAKind(isThreeOfAKind), .isFourOfAKind(isFourOfAKind), .isFullHouse(isFullHouse)
+		.existOnePair(existOnePair), .isPair(isPair), .isTwoPair(isTwoPair), .isThreeOfAKind(isThreeOfAKind), .isFourOfAKind(isFourOfAKind), .isFullHouse(isFullHouse)
 	);
 
 	// straight detector
@@ -498,6 +407,7 @@ module poker(type, i0, i1, i2, i3, i4);
 		.rank0(rank[0]), .rank1(rank[1]), .rank2(rank[2]), .rank3(rank[3]), .rank4(rank[4]),
 		.isStraight(isStraight)
 	);
+	// assign isStraight = 1'b0;
 
 	// type determination
 	wire highCard, onePair, twoPairs, threeOfAKind, straight, flush, fullHouse, fourOfAKind, straightFlush;
@@ -527,18 +437,4 @@ module poker(type, i0, i1, i2, i3, i4);
 	OR4 type_1(type[1], fourOfAKind, fullHouse, threeOfAKind, twoPair); // four of a kind, full house, three of a kind, two pairs
 	OR4 type_0(type[0], fourOfAKind, flush, threeOfAKind, onePair); // four of a kind, flush, three of a kind, one pair
 
-	// assign type[3] = fourOfAKind;
-	// assign type[2] = fourOfAKind;
-	// assign type[1] = fourOfAKind;
-	// assign type[0] = fourOfAKind;
-	
-	// 1000: straight flush
-	// 0111: four of a kind
-	// 0110: full house
-	// 0101: flush
-	// 0100: straight
-	// 0011: three of a kind
-	// 0010: two pairs
-	// 0001: one pair
-	// 0000: high card
 endmodule
