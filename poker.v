@@ -267,7 +267,7 @@ module checkIfLargerbyOne( // check if rank1 is larger than rank2 by 1
 
 endmodule
 
-module checkIfDiffByOne( // check if abs(rank1 - rank2) = 1
+module checkIfDiffByOne1( // check if abs(rank1 - rank2) = 1
 	output isDiffByOne,
 	input [3:0] rank1,
 	input [3:0] rank2
@@ -284,56 +284,96 @@ module checkIfDiffByOne( // check if abs(rank1 - rank2) = 1
 
 endmodule
 
-module sortByRank(
-    input [3:0] rank0, rank1, rank2, rank3, rank4,
-    output reg [3:0] sorted_rank0, sorted_rank1, sorted_rank2, sorted_rank3, sorted_rank4
+module checkIfDiffByOne(
+    output isDiffByOne,
+    input [3:0] rank1,
+    input [3:0] rank2
 );
 
-    reg [3:0] sorted_rank[4:0];
-    reg [3:0] temp;
-    integer i, j;
-	reg compare;
+    // expand all the possibilities, (1,2), (2,1), (2,3), (3,2), (3,4), (4,3), (4,5), (5,4), (5,6), (6,5), (6,7), (7,6), (7,8), (8,7), (8,9), (9,8), (9,10), (10,9), (10,11), (11,10), (11,12), (12,11), (12,13), (13,12), total 24 cases
+	wire isDiffByOne_12, isDiffByOne_21, isDiffByOne_23, isDiffByOne_32, isDiffByOne_34, isDiffByOne_43, isDiffByOne_45, isDiffByOne_54, isDiffByOne_56, isDiffByOne_65, isDiffByOne_67, isDiffByOne_76, isDiffByOne_78, isDiffByOne_87, isDiffByOne_89, isDiffByOne_98, isDiffByOne_910, isDiffByOne_109, isDiffByOne_1011, isDiffByOne_1110, isDiffByOne_1112, isDiffByOne_1211, isDiffByOne_1213, isDiffByOne_1312;
+	// assign isDiffByOne_12 = (rank1==1 && rank2==2);
+	// assign isDiffByOne_21 = (rank1==2 && rank2==1);
+	// assign isDiffByOne_23 = (rank1==2 && rank2==3);
+	// assign isDiffByOne_32 = (rank1==3 && rank2==2);
+	// assign isDiffByOne_34 = (rank1==3 && rank2==4);
+	// assign isDiffByOne_43 = (rank1==4 && rank2==3);
+	// assign isDiffByOne_45 = (rank1==4 && rank2==5);
+	// assign isDiffByOne_54 = (rank1==5 && rank2==4);
+	// assign isDiffByOne_56 = (rank1==5 && rank2==6);
+	// assign isDiffByOne_65 = (rank1==6 && rank2==5);
+	// assign isDiffByOne_67 = (rank1==6 && rank2==7);
+	// assign isDiffByOne_76 = (rank1==7 && rank2==6);
+	// assign isDiffByOne_78 = (rank1==7 && rank2==8);
+	// assign isDiffByOne_87 = (rank1==8 && rank2==7);
+	// assign isDiffByOne_89 = (rank1==8 && rank2==9);
+	// assign isDiffByOne_98 = (rank1==9 && rank2==8);
+	// assign isDiffByOne_910 = (rank1==9 && rank2==10);
+	// assign isDiffByOne_109 = (rank1==10 && rank2==9);
+	// assign isDiffByOne_1011 = (rank1==10 && rank2==11);
+	// assign isDiffByOne_1110 = (rank1==11 && rank2==10);
+	// assign isDiffByOne_1112 = (rank1==11 && rank2==12);
+	// assign isDiffByOne_1211 = (rank1==12 && rank2==11);
+	// assign isDiffByOne_1213 = (rank1==12 && rank2==13);
+	// assign isDiffByOne_1312 = (rank1==13 && rank2==12);
 
-    always @(*)
-    begin
-        sorted_rank[0] = rank0;
-        sorted_rank[1] = rank1;
-        sorted_rank[2] = rank2;
-        sorted_rank[3] = rank3;
-        sorted_rank[4] = rank4;
+	wire isRank1[12:0];
+	wire isRank2[12:0];
+	wire isDifferByOne[12:0][12:0];
 
-        // sort from small to large
-        for (i = 0; i < 4; i = i + 1)
-        begin
-            for (j = 0; j < 4 - i; j = j + 1)
-            begin
-                if (sorted_rank[j] > sorted_rank[j + 1])
-                begin
-                    temp = sorted_rank[j];
-                    sorted_rank[j] = sorted_rank[j + 1];
-                    sorted_rank[j + 1] = temp;
-                end
-            end
-        end
+	genvar i, j;
+	generate
+		for (i = 0; i < 13; i = i + 1)
+		begin
+			sameRankComparator2 isSameRank1(isRank1[i], rank1, i+1);
+			sameRankComparator2 isSameRank2(isRank2[i], rank2, i+1);
+			for (j = 0; j < 13; j = j + 1)
+			begin
+				if(i-j==1 || j-i==1)
+				begin
+					AN2 isDifferByOne_gate(isDifferByOne[i][j], isRank1[i], isRank2[j]);
+				end
+				else
+				begin
+					assign isDifferByOne[i][j] = 1'b0;
+				end
+			end
+		end
+	endgenerate
 
-        sorted_rank0 = sorted_rank[0];
-        sorted_rank1 = sorted_rank[1];
-        sorted_rank2 = sorted_rank[2];
-        sorted_rank3 = sorted_rank[3];
-        sorted_rank4 = sorted_rank[4];
-    end
+
+	// or or24_gate(isDiffByOne, isDiffByOne_12, isDiffByOne_21, isDiffByOne_23, isDiffByOne_32, isDiffByOne_34, isDiffByOne_43, isDiffByOne_45, isDiffByOne_54, isDiffByOne_56, isDiffByOne_65, isDiffByOne_67, isDiffByOne_76, isDiffByOne_78, isDiffByOne_87, isDiffByOne_89, isDiffByOne_98, isDiffByOne_910, isDiffByOne_109, isDiffByOne_1011, isDiffByOne_1110, isDiffByOne_1112, isDiffByOne_1211, isDiffByOne_1213, isDiffByOne_1312);
+	// wire temp1, temp2, temp3, temp4, temp5, temp6, temp7;
+	// OR4 or4_1(temp1, isDiffByOne_12, isDiffByOne_21, isDiffByOne_23, isDiffByOne_32);
+	// OR4 or4_2(temp2, isDiffByOne_34, isDiffByOne_43, isDiffByOne_45, isDiffByOne_54);
+	// OR4 or4_3(temp3, isDiffByOne_56, isDiffByOne_65, isDiffByOne_67, isDiffByOne_76);
+	// OR4 or4_4(temp4, isDiffByOne_78, isDiffByOne_87, isDiffByOne_89, isDiffByOne_98);
+	// OR4 or4_5(temp5, isDiffByOne_910, isDiffByOne_109, isDiffByOne_1011, isDiffByOne_1110);
+	// OR4 or4_6(temp6, isDiffByOne_1112, isDiffByOne_1211, isDiffByOne_1213, isDiffByOne_1312);
+	// OR4 or4_7(temp7, temp1, temp2, temp3, temp4);
+	// OR3 or3_1(isDiffByOne, temp5, temp6, temp7);
+
+	wire temp[9:0];
+	
+	OR4 or4_1(temp[0], isDifferByOne[0][1], isDifferByOne[1][0], isDifferByOne[1][2], isDifferByOne[2][1]);
+	OR4 or4_2(temp[1], isDifferByOne[2][3], isDifferByOne[3][2], isDifferByOne[3][4], isDifferByOne[4][3]);
+	OR4 or4_3(temp[2], isDifferByOne[4][5], isDifferByOne[5][4], isDifferByOne[5][6], isDifferByOne[6][5]);
+	OR4 or4_4(temp[3], isDifferByOne[6][7], isDifferByOne[7][6], isDifferByOne[7][8], isDifferByOne[8][7]);
+	OR4 or4_5(temp[4], isDifferByOne[8][9], isDifferByOne[9][8], isDifferByOne[9][10], isDifferByOne[10][9]);
+	OR4 or4_6(temp[5], isDifferByOne[10][11], isDifferByOne[11][10], isDifferByOne[11][12], isDifferByOne[12][11]);
+	// or or7_1(isDiffByOne, temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]);
+	OR2 or2_1(temp[6], temp[0], temp[1]);
+	OR2 or2_2(temp[7], temp[2], temp[3]);
+	OR2 or2_3(temp[8], temp[4], temp[5]);
+	OR3 or3_1(isDiffByOne, temp[6], temp[7], temp[8]);
+	
 endmodule
+
 
 module straightDetector(
 	input [3:0] rank0, rank1, rank2, rank3, rank4,
 	output isStraight
 );
-	
-	wire [3:0] sorted_rank0, sorted_rank1, sorted_rank2, sorted_rank3, sorted_rank4;
-	reg temp, isRank1BiggerOrEqual;
-
-	integer i;
-	integer j;
 
 	// if exist one pair, then it is not straight
 	wire existOnePair, notExistOnePair;
@@ -343,31 +383,143 @@ module straightDetector(
 	);
 	IV notExistOnePair_gate(notExistOnePair, existOnePair);
 
-	// sort by rank
-	sortByRank sortByRank(
-		.rank0(rank0), .rank1(rank1), .rank2(rank2), .rank3(rank3), .rank4(rank4),
-		.sorted_rank0(sorted_rank0), .sorted_rank1(sorted_rank1), .sorted_rank2(sorted_rank2), .sorted_rank3(sorted_rank3), .sorted_rank4(sorted_rank4)
-	);
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
 
-	// check if it is straight
-	wire isLargerbyOne01, isLargerbyOne12, isLargerbyOne23, isLargerbyOne34;
-	checkIfLargerbyOne compare01(isLargerbyOne01, sorted_rank0, sorted_rank1);
-	checkIfLargerbyOne compare12(isLargerbyOne12, sorted_rank1, sorted_rank2);
-	checkIfLargerbyOne compare23(isLargerbyOne23, sorted_rank2, sorted_rank3);
-	checkIfLargerbyOne compare34(isLargerbyOne34, sorted_rank3, sorted_rank4);
+	wire pair[9:0];
+	
+	checkIfDiffByOne check01(pair[0], rank[0], rank[1]);
+	checkIfDiffByOne check02(pair[1], rank[0], rank[2]);
+	checkIfDiffByOne check03(pair[2], rank[0], rank[3]);
+	checkIfDiffByOne check04(pair[3], rank[0], rank[4]);
+	checkIfDiffByOne check12(pair[4], rank[1], rank[2]);
+	checkIfDiffByOne check13(pair[5], rank[1], rank[3]);
+	checkIfDiffByOne check14(pair[6], rank[1], rank[4]);
+	checkIfDiffByOne check23(pair[7], rank[2], rank[3]);
+	checkIfDiffByOne check24(pair[8], rank[2], rank[4]);
+	checkIfDiffByOne check34(pair[9], rank[3], rank[4]);
 
-	// special case: A, 10, J, Q, K
-	// if sorted_rank0 = 1, sorted_rank1 = 10, sorted_rank2 = 11, sorted_rank3 = 12, sorted_rank4 = 13
-	// then isLargerbyOne01 = 0, isLargerbyOne12 = 1, isLargerbyOne23 = 1, isLargerbyOne34 = 1
-	wire isSpecialCase;
-	assign isSpecialCase = (sorted_rank4 - sorted_rank0 == 4'b1100);
+	
+	wire [3:0] pairCount = pair[0] + pair[1] + pair[2] + pair[3] + pair[4] + pair[5] + pair[6] + pair[7] + pair[8] + pair[9];
+	wire isPairCount4;
 
-	wire lastThreeCompare;
-	wire considerSpecialCase;
-	EO considerSpecialCase_gate(considerSpecialCase, isSpecialCase, isLargerbyOne01);
-	AN3 lastThreeCompare_gate(lastThreeCompare, isLargerbyOne12, isLargerbyOne23, isLargerbyOne34);
+	sameRankComparator2 compare_rank(isPairCount4, pairCount, 4'b0100);
 
-	AN3 isStraight_gate(isStraight, considerSpecialCase, lastThreeCompare, notExistOnePair);
+	wire isSpecialCase; // (10, J, Q, K, A)
+	wire is10JQKA[4:0];
+
+	// check if it is special case
+	wire specialCase[4:0][4:0];
+	
+	genvar i, j;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs10 checkIfRankIs10(specialCase[i][0], rank[i]);
+			checkIfRankIsJ checkIfRankIsJ(specialCase[i][1], rank[i]);
+			checkIfRankIsQ checkIfRankIsQ(specialCase[i][2], rank[i]);
+			checkIfRankIsK checkIfRankIsK(specialCase[i][3], rank[i]);
+			checkIfRankIsA checkIfRankIsA(specialCase[i][4], rank[i]);
+		end
+	endgenerate
+
+	OR5 or5_1(is10JQKA[0], specialCase[0][0], specialCase[1][0], specialCase[2][0], specialCase[3][0], specialCase[4][0]);
+	OR5 or5_2(is10JQKA[1], specialCase[0][1], specialCase[1][1], specialCase[2][1], specialCase[3][1], specialCase[4][1]);
+	OR5 or5_3(is10JQKA[2], specialCase[0][2], specialCase[1][2], specialCase[2][2], specialCase[3][2], specialCase[4][2]);
+	OR5 or5_4(is10JQKA[3], specialCase[0][3], specialCase[1][3], specialCase[2][3], specialCase[3][3], specialCase[4][3]);
+	OR5 or5_5(is10JQKA[4], specialCase[0][4], specialCase[1][4], specialCase[2][4], specialCase[3][4], specialCase[4][4]);
+	AN5 and5_1(isSpecialCase, is10JQKA[0], is10JQKA[1], is10JQKA[2], is10JQKA[3], is10JQKA[4]);
+	
+	wire possibleStraight;
+	OR2 or2_1(possibleStraight, isPairCount4, isSpecialCase);
+
+	AN2 isStraight_gate(isStraight, possibleStraight, notExistOnePair);
+
+endmodule
+
+module OR5(
+	output out,
+	input in0, in1, in2, in3, in4
+);
+
+	wire temp;
+	OR3 or3_1(temp, in0, in1, in2);
+	OR3 or3_2(out, temp, in3, in4);
+
+endmodule
+
+module AN5(
+	output out,
+	input in0, in1, in2, in3, in4
+);
+
+	wire temp;
+	AN3 an3_1(temp, in0, in1, in2);
+	AN3 an3_2(out, temp, in3, in4);
+
+endmodule
+
+module checkIfRankIs10(
+	output isRank10,
+	input [3:0] rank
+);
+
+	wire [3:0] rank10;
+	assign rank10 = 4'b1010;
+
+	sameRankComparator2 compare_rank(isRank10, rank, rank10);
+
+endmodule
+
+module checkIfRankIsJ(
+	output isRankJ,
+	input [3:0] rank
+);
+
+	wire [3:0] rankJ;
+	assign rankJ = 4'b1011;
+
+	sameRankComparator2 compare_rank(isRankJ, rank, rankJ);
+
+endmodule
+
+module checkIfRankIsQ(
+	output isRankQ,
+	input [3:0] rank
+);
+
+	wire [3:0] rankQ;
+	assign rankQ = 4'b1100;
+
+	sameRankComparator2 compare_rank(isRankQ, rank, rankQ);
+
+endmodule
+
+module checkIfRankIsK(
+	output isRankK,
+	input [3:0] rank
+);
+
+	wire [3:0] rankK;
+	assign rankK = 4'b1101;
+
+	sameRankComparator2 compare_rank(isRankK, rank, rankK);
+
+endmodule
+
+module checkIfRankIsA(
+	output isRankA,
+	input [3:0] rank
+);
+
+	wire [3:0] rankA;
+	assign rankA = 4'b0001;
+
+	sameRankComparator2 compare_rank(isRankA, rank, rankA);
 
 endmodule
 
@@ -407,7 +559,6 @@ module poker(type, i0, i1, i2, i3, i4);
 		.rank0(rank[0]), .rank1(rank[1]), .rank2(rank[2]), .rank3(rank[3]), .rank4(rank[4]),
 		.isStraight(isStraight)
 	);
-	// assign isStraight = 1'b0;
 
 	// type determination
 	wire highCard, onePair, twoPairs, threeOfAKind, straight, flush, fullHouse, fourOfAKind, straightFlush;

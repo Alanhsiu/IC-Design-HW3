@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-module AN3(Z,A,B,C);
+module AN3(Z,A,B,C); // 0.275/3 = 0.0916666666666667
       output Z;
        input A,B,C;
 
@@ -21,7 +21,7 @@ module AN3(Z,A,B,C);
            ( C *> Z ) = ( Tp_C_Z );
        endspecify
 endmodule
-module AN4(Z,A,B,C,D);
+module AN4(Z,A,B,C,D); // 0.371/4 = 0.09275
       output Z;
        input A,B,C,D;
 
@@ -46,7 +46,7 @@ module AN4(Z,A,B,C,D);
        endspecify
 endmodule
 
-module AN2(Z,A,B);
+module AN2(Z,A,B); // 0.178/2 = 0.089
             output Z;
        input A,B;
 
