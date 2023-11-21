@@ -46,7 +46,7 @@ module AN4(Z,A,B,C,D); // 0.371
        endspecify
 endmodule
 
-module AN2(Z,A,B); // 0.178
+module AN2(Z,A,B); // 0.225
             output Z;
        input A,B;
 
@@ -263,7 +263,7 @@ module FD2(Q,D,CLK,RESET);
       always @(posedge CLK) Q =#0.441 (realD&realRESET);
 endmodule
 
-module HA1(O,S,A,B); // 0.39
+module HA1(O,S,A,B); // 0.39 / 0.18
          output S,O;
        input A,B;
 

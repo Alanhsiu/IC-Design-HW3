@@ -23,7 +23,7 @@ module flushDetector(
 	EO compare_suit_bit1_04(same_suit_bit1[3], suit3[1], suit4[1]);
 	NR4 all_second_bits_same(all_same_bit1, same_suit_bit1[0], same_suit_bit1[1], same_suit_bit1[2], same_suit_bit1[3]);
 
-	AN2 is_flush_gate(isFlush, all_same_bit0, all_same_bit1);
+	HA1 is_flush_gate(.O(isFlush), .A(all_same_bit0), .B(all_same_bit1));
 
 endmodule
 
@@ -57,7 +57,7 @@ module sameRankComparator3(
 	sameRankComparator2 compare_rank12(isSameRank12, rank1, rank2);
 	sameRankComparator2 compare_rank13(isSameRank13, rank1, rank3);
 
-	AN2 isSameRank_gate(isSameRank, isSameRank12, isSameRank13);
+	HA1 isSameRank_gate(.O(isSameRank), .A(isSameRank12), .B(isSameRank13));
 
 endmodule
 
@@ -81,7 +81,7 @@ endmodule
 
 module sameRankDetector(
     input [3:0] rank0, rank1, rank2, rank3, rank4,
-    output existOnePair, isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse
+    output isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse
 );
 
 	wire existTwoPair, existThreeOfAKind, notExistThreeOfAKind;
@@ -130,28 +130,29 @@ module sameRankDetector(
 
     // check if exist two pairs
 	wire two_pair[14:0];
-	AN2 and2_two_pair_1(two_pair[0], isSameRank01, isSameRank23);
-	AN2 and2_two_pair_2(two_pair[1], isSameRank01, isSameRank24);
-	AN2 and2_two_pair_3(two_pair[2], isSameRank01, isSameRank34);
-	AN2 and2_two_pair_4(two_pair[3], isSameRank02, isSameRank13);
-	AN2 and2_two_pair_5(two_pair[4], isSameRank02, isSameRank14);
-	AN2 and2_two_pair_6(two_pair[5], isSameRank02, isSameRank34);
-	AN2 and2_two_pair_7(two_pair[6], isSameRank03, isSameRank12);
-	AN2 and2_two_pair_8(two_pair[7], isSameRank03, isSameRank14);
-	AN2 and2_two_pair_9(two_pair[8], isSameRank03, isSameRank24);
-	AN2 and2_two_pair_10(two_pair[9], isSameRank04, isSameRank12);
-	AN2 and2_two_pair_11(two_pair[10], isSameRank04, isSameRank13);
-	AN2 and2_two_pair_12(two_pair[11], isSameRank04, isSameRank23);
-	AN2 and2_two_pair_13(two_pair[12], isSameRank12, isSameRank34);
-	AN2 and2_two_pair_14(two_pair[13], isSameRank13, isSameRank24);
-	AN2 and2_two_pair_15(two_pair[14], isSameRank14, isSameRank23);
+	HA1 ha1_two_pair_1(.O(two_pair[0]), .A(isSameRank01), .B(isSameRank23));
+	HA1 ha1_two_pair_2(.O(two_pair[1]), .A(isSameRank01), .B(isSameRank24));
+	HA1 ha1_two_pair_3(.O(two_pair[2]), .A(isSameRank01), .B(isSameRank34));
+	HA1 ha1_two_pair_4(.O(two_pair[3]), .A(isSameRank02), .B(isSameRank13));
+	HA1 ha1_two_pair_5(.O(two_pair[4]), .A(isSameRank02), .B(isSameRank14));
+	HA1 ha1_two_pair_6(.O(two_pair[5]), .A(isSameRank02), .B(isSameRank34));
+	HA1 ha1_two_pair_7(.O(two_pair[6]), .A(isSameRank03), .B(isSameRank12));
+	HA1 ha1_two_pair_8(.O(two_pair[7]), .A(isSameRank03), .B(isSameRank14));
+	HA1 ha1_two_pair_9(.O(two_pair[8]), .A(isSameRank03), .B(isSameRank24));
+	HA1 ha1_two_pair_10(.O(two_pair[9]), .A(isSameRank04), .B(isSameRank12));
+	HA1 ha1_two_pair_11(.O(two_pair[10]), .A(isSameRank04), .B(isSameRank13));
+	HA1 ha1_two_pair_12(.O(two_pair[11]), .A(isSameRank04), .B(isSameRank23));
+	HA1 ha1_two_pair_13(.O(two_pair[12]), .A(isSameRank12), .B(isSameRank34));
+	HA1 ha1_two_pair_14(.O(two_pair[13]), .A(isSameRank13), .B(isSameRank24));
+	HA1 ha1_two_pair_15(.O(two_pair[14]), .A(isSameRank14), .B(isSameRank23));
 
 	wire temp1, temp2, temp3, temp4;
-	OR4 or4_two_pair_1(temp1, two_pair[0], two_pair[1], two_pair[2], two_pair[3]);
-	OR4 or4_two_pair_2(temp2, two_pair[4], two_pair[5], two_pair[6], two_pair[7]);
-	OR4 or4_two_pair_3(temp3, two_pair[8], two_pair[9], two_pair[10], two_pair[11]);
-	OR3 or3_two_pair(temp4, two_pair[12], two_pair[13], two_pair[14]);
-	OR4 or4_two_pair(existTwoPair, temp1, temp2, temp3, temp4);
+	// OR4 or4_two_pair_1(temp1, two_pair[0], two_pair[1], two_pair[2], two_pair[3]);
+	// OR4 or4_two_pair_2(temp2, two_pair[4], two_pair[5], two_pair[6], two_pair[7]);
+	// OR4 or4_two_pair_3(temp3, two_pair[8], two_pair[9], two_pair[10], two_pair[11]);
+	// OR3 or3_two_pair(temp4, two_pair[12], two_pair[13], two_pair[14]);
+	// OR4 or4_two_pair(existTwoPair, temp1, temp2, temp3, temp4);
+	or or14(existTwoPair, two_pair[0], two_pair[1], two_pair[2], two_pair[3], two_pair[4], two_pair[5], two_pair[6], two_pair[7], two_pair[8], two_pair[9], two_pair[10], two_pair[11], two_pair[12], two_pair[13], two_pair[14]);
 
     // check if exist three of a kind
     wire or_three_1, or_three_2;
@@ -159,162 +160,172 @@ module sameRankDetector(
     OR4 or4_three_2(or_three_2, isSameRank024, isSameRank034, isSameRank123, isSameRank124);
     OR4 orr_three_3(existThreeOfAKind, or_three_1, or_three_2, isSameRank134, isSameRank234);
 
-	// check if exist any pair
-    wire or_pair_1, or_pair_2;
-    OR4 or4_pair_1(or_pair_1, isSameRank01, isSameRank02, isSameRank03, isSameRank04);
-    OR4 or4_pair_2(or_pair_2, isSameRank12, isSameRank13, isSameRank14, isSameRank23);
-    OR4 isAnyPair_gate(existOnePair, or_pair_1, or_pair_2, isSameRank24, isSameRank34);
-	
     // four of a kind
     wire or_four_1;
     OR4 or4_four(or_four_1, isSameRank0123, isSameRank0124, isSameRank0134, isSameRank0234);
     OR2 or2_four(isFourOfAKind, or_four_1, isSameRank1234);
 
 	// full house
-	AN2 isFullHouse_gate(isFullHouse, existTwoPair, existThreeOfAKind);
+	checkFullHouse fullHouse_gate(isFullHouse, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
 	// three of a kind
-	AN3 threeOfAKind_gate(isThreeOfAKind, existThreeOfAKind, notFourOfAKind, notFullHouse); 
+	checkThreeOfAKind threeOfAKind_gate(isThreeOfAKind, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
     // two pairs
-	AN4 twoPair_gate(isTwoPair, existTwoPair, notThreeOfAKind, notFourOfAKind, notFullHouse);
+	checkTwoPairs twoPair_gate(isTwoPair, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
 	// one pair
-	AN4 onePair_gate(isPair, existOnePair, notTwoPair, notExistThreeOfAKind, notFourOfAKind);
-
-	// wire sumOfPair;
-	// assign sumOfPair = isSameRank01 + isSameRank02 + isSameRank03 + isSameRank04 + isSameRank12 + isSameRank13 + isSameRank14 + isSameRank23 + isSameRank24 + isSameRank34;
-	// assign isPair = (sumOfPair == 1) ? 1'b1 : 1'b0;
-	// assign isTwoPair = (sumOfPair == 2) ? 1'b1 : 1'b0;
-	// assign isThreeOfAKind = (sumOfPair == 3) ? 1'b1 : 1'b0;
-	// assign isFullHouse = (sumOfPair == 4) ? 1'b1 : 1'b0;
-	// assign isFourOfAKind = (sumOfPair == 6) ? 1'b1 : 1'b0;
+	checkOnlyOnePair onePair_gate(isPair, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
 endmodule
 
-module checkIfDiffByOne(
-    output isDiffByOne,
-    input [3:0] rank1,
-    input [3:0] rank2
+module checkFullHouse(
+	output isFullHouse,
+	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
 );
 
-    // expand all the possibilities, (1,2), (2,1), (2,3), (3,2), (3,4), (4,3), (4,5), (5,4), (5,6), (6,5), (6,7), (7,6), (7,8), (8,7), (8,9), (9,8), (9,10), (10,9), (10,11), (11,10), (11,12), (12,11), (12,13), (13,12), total 24 cases
+	wire combination[9:0];
+	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
-	wire isRank1[12:0];
-	wire isRank2[12:0];
-	wire isDifferByOne[12:0][12:0];
-	wire isNotDiffByOne[12:0][12:0];
+	// assign notSameRank
+	IV notSameRank_gate0(isNotSameRank01, isSameRank01);
+	IV notSameRank_gate1(isNotSameRank02, isSameRank02);
+	IV notSameRank_gate2(isNotSameRank03, isSameRank03);
+	IV notSameRank_gate3(isNotSameRank04, isSameRank04);
+	IV notSameRank_gate4(isNotSameRank12, isSameRank12);
+	IV notSameRank_gate5(isNotSameRank13, isSameRank13);
+	IV notSameRank_gate6(isNotSameRank14, isSameRank14);
+	IV notSameRank_gate7(isNotSameRank23, isSameRank23);
+	IV notSameRank_gate8(isNotSameRank24, isSameRank24);
+	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
-	genvar i, j;
-	generate
-		for (i = 0; i < 13; i = i + 1)
-		begin
-			sameRankComparator2 isSameRank1(isRank1[i], rank1, i+1);
-			sameRankComparator2 isSameRank2(isRank2[i], rank2, i+1);
-			for (j = 0; j < 13; j = j + 1)
-			begin
-				IV notDiffByOne_gate(isNotDiffByOne[i][j], isDifferByOne[i][j]);
-				if(i-j==1 || j-i==1)
-				begin
-					AN2 isDifferByOne_gate(isDifferByOne[i][j], isRank1[i], isRank2[j]);
-				end
-				else
-				begin
-					assign isDifferByOne[i][j] = 1'b0;
-				end
-			end
-		end
-	endgenerate
+	// assign combination
+	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate1(combination[1], isNotSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate2(combination[2], isNotSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate3(combination[3], isSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate4(combination[4], isSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate5(combination[5], isSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate8(combination[8], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate9(combination[9], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34);
 
-	wire temp[9:0];
-	
-	ND4 nd4_1(temp[0], isNotDiffByOne[0][1], isNotDiffByOne[1][0], isNotDiffByOne[1][2], isNotDiffByOne[2][1]);
-	ND4 nd4_2(temp[1], isNotDiffByOne[2][3], isNotDiffByOne[3][2], isNotDiffByOne[3][4], isNotDiffByOne[4][3]);
-	ND4 nd4_3(temp[2], isNotDiffByOne[4][5], isNotDiffByOne[5][4], isNotDiffByOne[5][6], isNotDiffByOne[6][5]);
-	ND4 nd4_4(temp[3], isNotDiffByOne[6][7], isNotDiffByOne[7][6], isNotDiffByOne[7][8], isNotDiffByOne[8][7]);
-	ND4 nd4_5(temp[4], isNotDiffByOne[8][9], isNotDiffByOne[9][8], isNotDiffByOne[9][10], isNotDiffByOne[10][9]);
-	ND4 nd4_6(temp[5], isNotDiffByOne[10][11], isNotDiffByOne[11][10], isNotDiffByOne[11][12], isNotDiffByOne[12][11]);
-	NR2 nr2_1(temp[6], temp[0], temp[1]);
-	NR2 nr2_2(temp[7], temp[2], temp[3]);
-	NR2 nr2_3(temp[8], temp[4], temp[5]);
-	ND3 nd3_1(isDiffByOne, temp[6], temp[7], temp[8]);
-	
-	// or or7_1(isDiffByOne, temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]);
-	
+	or or10_1(isFullHouse, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9]);
+
 endmodule
 
-module isPairCount4(
-	output isPairCount4,
-	input pair0, pair1, pair2, pair3, pair4, pair5, pair6, pair7, pair8, pair9
+module checkThreeOfAKind(
+	output isThreeOfAKind,
+	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
 );
 
+	wire combination[9:0];
+	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
+	// assign notSameRank
+	IV notSameRank_gate0(isNotSameRank01, isSameRank01);
+	IV notSameRank_gate1(isNotSameRank02, isSameRank02);
+	IV notSameRank_gate2(isNotSameRank03, isSameRank03);
+	IV notSameRank_gate3(isNotSameRank04, isSameRank04);
+	IV notSameRank_gate4(isNotSameRank12, isSameRank12);
+	IV notSameRank_gate5(isNotSameRank13, isSameRank13);
+	IV notSameRank_gate6(isNotSameRank14, isSameRank14);
+	IV notSameRank_gate7(isNotSameRank23, isSameRank23);
+	IV notSameRank_gate8(isNotSameRank24, isSameRank24);
+	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
-	wire [3:0] pairCount = pair0 + pair1 + pair2 + pair3 + pair4 + pair5 + pair6 + pair7 + pair8 + pair9;
-	sameRankComparator2 compare_rank(isPairCount4, pairCount, 4'b0100);
+	// assign combination
+	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate1(combination[1], isNotSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate2(combination[2], isNotSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate3(combination[3], isSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate4(combination[4], isSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate5(combination[5], isSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate8(combination[8], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate9(combination[9], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34);
 
-	// wire pair[9:0];
-	// assign pair[0] = pair0;
-	// assign pair[1] = pair1;
-	// assign pair[2] = pair2;
-	// assign pair[3] = pair3;
-	// assign pair[4] = pair4;
-	// assign pair[5] = pair5;
-	// assign pair[6] = pair6;
-	// assign pair[7] = pair7;
-	// assign pair[8] = pair8;
-	// assign pair[9] = pair9;
+	or or10_1(isThreeOfAKind, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9]);
 
-	// // check if there are 4 pairs 
+endmodule
 
-	// wire [255:0] level1;
-	// wire [63:0]  level2;
-	// wire [15:0]  level3;
-	// wire [3:0]   level4;
+module checkTwoPairs(
+	output isTwoPairs,
+	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
+);
 
-	// genvar i, j, k, l;
+	wire combination[14:0];
+	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
-	// generate
-	// 	for (i = 0; i < 7; i = i + 1) begin : loop_i
-	// 		for (j = i + 1; j < 8; j = j + 1) begin : loop_j
-	// 			for (k = j + 1; k < 9; k = k + 1) begin : loop_k
-	// 				for (l = k + 1; l < 10; l = l + 1) begin : loop_l
-	// 					// m = 56i + 21j + 6k + l -36
-    //                 	assign level1[56*i + 21*j + 6*k + l -36] = pair[i] & pair[j] & pair[k] & pair[l];
-	// 				end
-	// 			end
-	// 		end
-	// 	end
-	// endgenerate
+	// assign notSameRank
+	IV notSameRank_gate0(isNotSameRank01, isSameRank01);
+	IV notSameRank_gate1(isNotSameRank02, isSameRank02);
+	IV notSameRank_gate2(isNotSameRank03, isSameRank03);
+	IV notSameRank_gate3(isNotSameRank04, isSameRank04);
+	IV notSameRank_gate4(isNotSameRank12, isSameRank12);
+	IV notSameRank_gate5(isNotSameRank13, isSameRank13);
+	IV notSameRank_gate6(isNotSameRank14, isSameRank14);
+	IV notSameRank_gate7(isNotSameRank23, isSameRank23);
+	IV notSameRank_gate8(isNotSameRank24, isSameRank24);
+	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
-	// generate 
-	// 	for (i = 210; i < 255; i = i + 1) begin : loop_n1
-	// 		assign level1[i] = 1'b0;
-	// 	end
-	// endgenerate
+	// assign combination
+	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate1(combination[1], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate2(combination[2], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate3(combination[3], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate4(combination[4], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate5(combination[5], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate8(combination[8], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate9(combination[9], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate10(combination[10], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate11(combination[11], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate12(combination[12], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	nor isNotSameRank_gate13(combination[13], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate14(combination[14], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
 
-	// or isPairCount4_gate(isPairCount4, level1[0], level1[1], level1[2], level1[3], level1[4], level1[5], level1[6], level1[7], level1[8], level1[9], level1[10], level1[11], level1[12], level1[13], level1[14], level1[15], level1[16], level1[17], level1[18], level1[19], level1[20], level1[21], level1[22], level1[23], level1[24], level1[25], level1[26], level1[27], level1[28], level1[29], level1[30], level1[31], level1[32], level1[33], level1[34], level1[35], level1[36], level1[37], level1[38], level1[39], level1[40], level1[41], level1[42], level1[43], level1[44], level1[45], level1[46], level1[47], level1[48], level1[49], level1[50], level1[51], level1[52], level1[53], level1[54], level1[55], level1[56], level1[57], level1[58], level1[59], level1[60], level1[61], level1[62], level1[63], level1[64], level1[65], level1[66], level1[67], level1[68], level1[69], level1[70], level1[71], level1[72], level1[73], level1[74], level1[75], level1[76], level1[77], level1[78], level1[79], level1[80], level1[81], level1[82], level1[83], level1[84], level1[85], level1[86], level1[87], level1[88], level1[89], level1[90], level1[91], level1[92], level1[93], level1[94], level1[95], level1[96], level1[97], level1[98], level1[99], level1[100], level1[101], level1[102], level1[103], level1[104], level1[105], level1[106], level1[107], level1[108], level1[109], level1[110], level1[111], level1[112], level1[113], level1[114], level1[115], level1[116], level1[117], level1[118], level1[119], level1[120], level1[121], level1[122], level1[123], level1[124], level1[125], level1[126], level1[127], level1[128], level1[129], level1[130], level1[131], level1[132], level1[133], level1[134], level1[135], level1[136], level1[137], level1[138], level1[139], level1[140], level1[141], level1[142], level1[143], level1[144], level1[145], level1[146], level1[147], level1[148], level1[149], level1[150], level1[151], level1[152], level1[153], level1[154], level1[155], level1[156], level1[157], level1[158], level1[159], level1[160], level1[161], level1[162], level1[163], level1[164], level1[165], level1[166], level1[167], level1[168], level1[169], level1[170], level1[171], level1[172], level1[173], level1[174], level1[175], level1[176], level1[177], level1[178], level1[179], level1[180], level1[181], level1[182], level1[183], level1[184], level1[185], level1[186], level1[187], level1[188], level1[189], level1[190], level1[191], level1[192], level1[193], level1[194], level1[195], level1[196], level1[197], level1[198], level1[199], level1[200], level1[201], level1[202], level1[203], level1[204], level1[205], level1[206], level1[207], level1[208], level1[209], level1[210], level1[211], level1[212], level1[213], level1[214], level1[215], level1[216], level1[217], level1[218], level1[219], level1[220], level1[221], level1[222], level1[223], level1[224], level1[225], level1[226], level1[227], level1[228], level1[229], level1[230], level1[231], level1[232], level1[233], level1[234], level1[235], level1[236], level1[237], level1[238], level1[239], level1[240], level1[241], level1[242], level1[243], level1[244], level1[245], level1[246], level1[247], level1[248], level1[249], level1[250], level1[251], level1[252], level1[253], level1[254], level1[255]);
+	or or15_1(isTwoPairs, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9], combination[10], combination[11], combination[12], combination[13], combination[14]);
 
-	// generate
-	// 	for (i = 0; i < 63; i = i + 1) begin : loop_n2
-	// 		assign level2[i] = level1[i*4] | level1[i*4+1] | level1[i*4+2] | level1[i*4+3];
-	// 	end
-	// endgenerate
+endmodule
 
-	// generate
-	// 	for (i = 0; i < 15; i = i + 1) begin : loop_n3
-	// 		assign level3[i] = level2[i*4] | level2[i*4+1] | level2[i*4+2] | level2[i*4+3];
-	// 	end
-	// endgenerate
+module checkOnlyOnePair(
+	output isOnlyOnePair,
+	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
+);
 
-	// generate
-	// 	for (i = 0; i < 3; i = i + 1) begin : loop_n4
-	// 		assign level4[i] = level3[i*4] | level3[i*4+1] | level3[i*4+2] | level3[i*4+3];
-	// 	end
-	// endgenerate
+	wire combination[9:0];
+	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
-	// assign isPairCount4 = level4[0] | level4[1] | level4[2] | level4[3];
+	// assign notSameRank
+	IV notSameRank_gate0(isNotSameRank01, isSameRank01);
+	IV notSameRank_gate1(isNotSameRank02, isSameRank02);
+	IV notSameRank_gate2(isNotSameRank03, isSameRank03);
+	IV notSameRank_gate3(isNotSameRank04, isSameRank04);
+	IV notSameRank_gate4(isNotSameRank12, isSameRank12);
+	IV notSameRank_gate5(isNotSameRank13, isSameRank13);
+	IV notSameRank_gate6(isNotSameRank14, isSameRank14);
+	IV notSameRank_gate7(isNotSameRank23, isSameRank23);
+	IV notSameRank_gate8(isNotSameRank24, isSameRank24);
+	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
+	// assign combination
+	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate1(combination[1], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate2(combination[2], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate3(combination[3], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate4(combination[4], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate5(combination[5], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	nor isNotSameRank_gate8(combination[8], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
+	nor isNotSameRank_gate9(combination[9], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+
+	or or10_1(isOnlyOnePair, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9]);
+	
 endmodule
 
 module checkStraightA2345(
@@ -689,48 +700,12 @@ module straightDetector(
 	output isStraight, isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA
 );
 
-	// if exist one pair, then it is not straight
-	wire existOnePair, notExistOnePair;
-	sameRankDetector sameRankDetector(
-		.rank0(rank0), .rank1(rank1), .rank2(rank2), .rank3(rank3), .rank4(rank4),
-		.existOnePair(existOnePair)
-	);
-	IV notExistOnePair_gate(notExistOnePair, existOnePair);
-
 	wire [3:0] rank[4:0];
 	assign rank[0] = rank0;
 	assign rank[1] = rank1;
 	assign rank[2] = rank2;
 	assign rank[3] = rank3;
 	assign rank[4] = rank4;
-
-	wire pair[9:0];
-	
-	checkIfDiffByOne check01(pair[0], rank[0], rank[1]);
-	checkIfDiffByOne check02(pair[1], rank[0], rank[2]);
-	checkIfDiffByOne check03(pair[2], rank[0], rank[3]);
-	checkIfDiffByOne check04(pair[3], rank[0], rank[4]);
-	checkIfDiffByOne check12(pair[4], rank[1], rank[2]);
-	checkIfDiffByOne check13(pair[5], rank[1], rank[3]);
-	checkIfDiffByOne check14(pair[6], rank[1], rank[4]);
-	checkIfDiffByOne check23(pair[7], rank[2], rank[3]);
-	checkIfDiffByOne check24(pair[8], rank[2], rank[4]);
-	checkIfDiffByOne check34(pair[9], rank[3], rank[4]);
-
-	wire isPairCount4;
-	wire pair0, pair1, pair2, pair3, pair4, pair5, pair6, pair7, pair8, pair9;
-	assign pair0 = pair[0];
-	assign pair1 = pair[1];
-	assign pair2 = pair[2];
-	assign pair3 = pair[3];
-	assign pair4 = pair[4];
-	assign pair5 = pair[5];
-	assign pair6 = pair[6];
-	assign pair7 = pair[7];
-	assign pair8 = pair[8];
-	assign pair9 = pair[9];
-
-	isPairCount4 isPairCount4_gate(isPairCount4, pair0, pair1, pair2, pair3, pair4, pair5, pair6, pair7, pair8, pair9);
 
 	wire isStraightA2345;  // (A, 2, 3, 4, 5)
 	wire isStraight23456;  // (2, 3, 4, 5, 6)
@@ -760,7 +735,6 @@ module straightDetector(
 	// // OR2 or2_1(possibleStraight, isPairCount4, isStraight10JQKA);
 	// or or_1(possibleStraight, isPairCount4, isStraight10JQKA);
 
-	// AN2 isStraight_gate(isStraight, possibleStraight, notExistOnePair);
 
 endmodule
 
@@ -810,10 +784,10 @@ module poker(type, i0, i1, i2, i3, i4);
 	);
 
 	// same rank detector
-	wire existOnePair, isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse, isStraight, isStraightFlush;
+	wire isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse, isStraight, isStraightFlush;
 	sameRankDetector sameRankDetector(
 		.rank0(rank[0]), .rank1(rank[1]), .rank2(rank[2]), .rank3(rank[3]), .rank4(rank[4]),
-		.existOnePair(existOnePair), .isPair(isPair), .isTwoPair(isTwoPair), .isThreeOfAKind(isThreeOfAKind), .isFourOfAKind(isFourOfAKind), .isFullHouse(isFullHouse)
+		.isPair(isPair), .isTwoPair(isTwoPair), .isThreeOfAKind(isThreeOfAKind), .isFourOfAKind(isFourOfAKind), .isFullHouse(isFullHouse)
 	);
 
 	// straight detector
@@ -828,9 +802,9 @@ module poker(type, i0, i1, i2, i3, i4);
 	IV notFlush_gate(isNotFlush, isFlush);
 	IV notStraight_gate(isNotStraight, isStraight);
 
-	AN2 straightFlush_gate(isStraightFlush, isFlush, isStraight);
-	AN2 flush_gate(flush, isFlush, isNotStraight);
-	AN2 straight_gate(straight, isStraight, isNotFlush);
+	HA1 straightFlush_gate(.O(isStraightFlush), .A(isFlush), .B(isStraight));
+	HA1 flush_gate(.O(flush), .A(isFlush), .B(isNotStraight));
+	HA1 straight_gate(.O(straight), .A(isStraight), .B(isNotFlush));
 
 	assign type[3] = isStraightFlush;
 	OR4 type_2(type[2], isFourOfAKind, isFullHouse, flush, straight); // four of a kind, full house, flush, straight
