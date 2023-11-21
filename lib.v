@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-module AN3(Z,A,B,C); // 0.275/3 = 0.0916666666666667
+module AN3(Z,A,B,C); // 0.275
       output Z;
        input A,B,C;
 
@@ -21,7 +21,7 @@ module AN3(Z,A,B,C); // 0.275/3 = 0.0916666666666667
            ( C *> Z ) = ( Tp_C_Z );
        endspecify
 endmodule
-module AN4(Z,A,B,C,D); // 0.371/4 = 0.09275
+module AN4(Z,A,B,C,D); // 0.371
       output Z;
        input A,B,C,D;
 
@@ -46,7 +46,7 @@ module AN4(Z,A,B,C,D); // 0.371/4 = 0.09275
        endspecify
 endmodule
 
-module AN2(Z,A,B); // 0.178/2 = 0.089
+module AN2(Z,A,B); // 0.178
             output Z;
        input A,B;
 
@@ -66,7 +66,7 @@ module AN2(Z,A,B); // 0.178/2 = 0.089
            ( B *> Z ) = ( Tp_B_Z );
        endspecify
 endmodule
-module DRIVER(Z,A);
+module DRIVER(Z,A); // 0.174
             output Z;
        input A;
 
@@ -86,7 +86,7 @@ module DRIVER(Z,A);
 endmodule
 
 
-module DRIVER2(Z,A);
+module DRIVER2(Z,A); // 0.178
           output Z;
        input A;
 
@@ -105,7 +105,7 @@ module DRIVER2(Z,A);
        endspecify
 endmodule
 
-module EN(Z,A,B);
+module EN(Z,A,B); // 1.10
            output Z;
        input A,B;
 
@@ -128,7 +128,7 @@ module EN(Z,A,B);
        endspecify
 endmodule
 
-module EN3(Z,A,B,C);
+module EN3(Z,A,B,C); // 1.10
            output Z;
        input A,B,C;
 
@@ -152,7 +152,7 @@ module EN3(Z,A,B,C);
 endmodule
 
 
-module EO(Z,A,B);
+module EO(Z,A,B); // 0.343
          output Z;
        input A,B;
        xor u0(Z,A,B);
@@ -166,7 +166,7 @@ endspecify
 endmodule
 
 
-module EO3(Z,A,B,C);
+module EO3(Z,A,B,C); // 0.82
            output Z;
        input A,B,C;
 
@@ -189,7 +189,7 @@ module EO3(Z,A,B,C);
        endspecify
 endmodule
 
-module FA1(CO,S,A,B,CI);
+module FA1(CO,S,A,B,CI); // 0.61
        output S,CO;
        input A,B,CI;
 
@@ -263,7 +263,7 @@ module FD2(Q,D,CLK,RESET);
       always @(posedge CLK) Q =#0.441 (realD&realRESET);
 endmodule
 
-module HA1(O,S,A,B);
+module HA1(O,S,A,B); // 0.39
          output S,O;
        input A,B;
 
@@ -291,7 +291,7 @@ module HA1(O,S,A,B);
        endspecify
 endmodule
 
-module IV(Z,A);
+module IV(Z,A); // 0.127
           output Z;
        input A;
 
@@ -310,7 +310,7 @@ module IV(Z,A);
        endspecify
 endmodule
 
-module MUX21H(Z,A,B,CTRL);
+module MUX21H(Z,A,B,CTRL); // 0.347
             output Z;
        input A,B,CTRL;
        wire w;
@@ -335,7 +335,7 @@ module MUX21H(Z,A,B,CTRL);
        endspecify
 endmodule
 
-module ND2(Z,A,B);
+module ND2(Z,A,B); // 0.176
          output Z;
        input A,B;
 
@@ -356,7 +356,7 @@ module ND2(Z,A,B);
        endspecify
 endmodule
 
-module ND3(Z,A,B,C);
+module ND3(Z,A,B,C); // 0.226
        output Z;
        input A,B,C;
 
@@ -378,7 +378,7 @@ module ND3(Z,A,B,C);
            ( C *> Z ) = ( Tp_C_Z );
        endspecify
 endmodule
-module ND4(Z,A,B,C,D);
+module ND4(Z,A,B,C,D); // 0.296
        output Z;
        input A,B,C,D;
 
@@ -402,7 +402,7 @@ module ND4(Z,A,B,C,D);
            ( D *> Z ) = ( Tp_D_Z );
        endspecify
 endmodule
-module NR2(Z,A,B);
+module NR2(Z,A,B); // 0.227
         output Z;
        input A,B;
 
@@ -423,7 +423,7 @@ module NR2(Z,A,B);
        endspecify
 endmodule
 
-module NR3(Z,A,B,C);
+module NR3(Z,A,B,C); // 0.349
        output Z;
        input A,B,C;
 
@@ -446,7 +446,7 @@ module NR3(Z,A,B,C);
        endspecify
 endmodule
 
-module NR4(Z,A,B,C,D);
+module NR4(Z,A,B,C,D); // 0.345
       output Z;
        input A,B,C,D;
 
@@ -471,7 +471,7 @@ module NR4(Z,A,B,C,D);
        endspecify
 endmodule
 
-module OR2(Z,A,B);
+module OR2(Z,A,B); // 0.300
        output Z;
        input A,B;
 
@@ -492,7 +492,7 @@ module OR2(Z,A,B);
        endspecify
 endmodule
 
-module OR3(Z,A,B,C);
+module OR3(Z,A,B,C); // 0.430
        output Z;
        input A,B,C;
 
@@ -515,7 +515,7 @@ module OR3(Z,A,B,C);
        endspecify
 endmodule
 
-module OR4(Z,A,B,C,D);
+module OR4(Z,A,B,C,D); // 0.544
          output Z;
        input A,B,C,D;
 

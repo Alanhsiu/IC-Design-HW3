@@ -10,7 +10,7 @@ module straightDetector_tb;
     reg [3:0] rank4;
 
     // Output
-    wire isStraight;
+	wire isStraight, isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA;
 
     // Instantiate the Unit Under Test (UUT)
     straightDetector uut (
@@ -19,7 +19,17 @@ module straightDetector_tb;
         .rank2(rank2), 
         .rank3(rank3), 
         .rank4(rank4), 
-        .isStraight(isStraight)
+        .isStraight(isStraight),
+        .isStraightA2345(isStraightA2345),
+        .isStraight23456(isStraight23456),
+        .isStraight34567(isStraight34567),
+        .isStraight45678(isStraight45678),
+        .isStraight56789(isStraight56789),
+        .isStraight678910(isStraight678910),
+        .isStraight78910J(isStraight78910J),
+        .isStraight8910JQ(isStraight8910JQ),
+        .isStraight910JQK(isStraight910JQK),
+        .isStraight10JQKA(isStraight10JQKA)
     );
 
     initial begin
@@ -42,33 +52,40 @@ module straightDetector_tb;
         rank4 = 0;
         #10; // Wait for 10ns
         $display("isStraight = %d", isStraight);
+        $display(isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
+
 
         // Example test case: A straight (5, 6, 7, 8, 9)
-        rank0 = 5;
+        rank0 = 7;
         rank1 = 6;
-        rank2 = 7;
+        rank2 = 5;
         rank3 = 8;
         rank4 = 9;
         #10; // Wait for 10ns
         $display("isStraight = %d", isStraight);
+        $display(isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
 
         // Example test case: Not a straight (pair present)
         rank0 = 5;
         rank1 = 5;
-        rank2 = 7;
+        rank2 = 6;
         rank3 = 8;
-        rank4 = 9;
+        rank4 = 7;
         #10; // Wait for 10ns
         $display("isStraight = %d", isStraight);
+        $display(isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
+
 
         // Example test case: A straight (10, J, Q, K, A)
-        rank0 = 10;
+        rank0 = 1;
         rank1 = 11;
         rank2 = 12;
         rank3 = 13;
-        rank4 = 1;
+        rank4 = 10;
         #10; // Wait for 10ns
         $display("isStraight = %d", isStraight);
+        $display(isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
+
 
         // Add more test cases as needed
     end
