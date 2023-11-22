@@ -2,7 +2,7 @@
 
 module flushDetector(
     input [1:0] suit0, suit1, suit2, suit3, suit4,
-    output isFlush
+    output isFlush, isNotFlush
 );
 
 	wire same_suit_bit0 [3:0];
@@ -24,6 +24,7 @@ module flushDetector(
 	NR4 all_second_bits_same(all_same_bit1, same_suit_bit1[0], same_suit_bit1[1], same_suit_bit1[2], same_suit_bit1[3]);
 
 	HA1 is_flush_gate(.O(isFlush), .A(all_same_bit0), .B(all_same_bit1));
+	ND2 is_not_flush_gate(isNotFlush, all_same_bit0, all_same_bit1);
 
 endmodule
 
@@ -45,57 +46,13 @@ module sameRankComparator2(
 
 endmodule
 
-module sameRankComparator3(
-	output isSameRank,
-	input [3:0] rank1,
-	input [3:0] rank2,
-	input [3:0] rank3
-);
-
-	wire isSameRank12, isSameRank13;
-
-	sameRankComparator2 compare_rank12(isSameRank12, rank1, rank2);
-	sameRankComparator2 compare_rank13(isSameRank13, rank1, rank3);
-
-	HA1 isSameRank_gate(.O(isSameRank), .A(isSameRank12), .B(isSameRank13));
-
-endmodule
-
-module sameRankComparator4(
-	output isSameRank,
-	input [3:0] rank1,
-	input [3:0] rank2,
-	input [3:0] rank3,
-	input [3:0] rank4
-);
-
-	wire isSameRank12, isSameRank23, isSameRank34;
-
-	sameRankComparator2 compare_rank12(isSameRank12, rank1, rank2);
-	sameRankComparator2 compare_rank23(isSameRank23, rank2, rank3);
-	sameRankComparator2 compare_rank34(isSameRank34, rank3, rank4);
-
-	AN3 isSameRank_gate(isSameRank, isSameRank12, isSameRank23, isSameRank34);
-
-endmodule
-
 module sameRankDetector(
     input [3:0] rank0, rank1, rank2, rank3, rank4,
-    output isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse
+    output isNotOnlyOnePair, isNotTwoPairs, isNotThreeOfAKind, isNotFourOfAKind, isNotFullHouse
 );
 
-	wire existTwoPair, existThreeOfAKind, notExistThreeOfAKind;
-	wire notFourOfAKind, notFullHouse, notThreeOfAKind, notTwoPair;
     wire isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34;
-    wire isSameRank012, isSameRank013, isSameRank014, isSameRank023, isSameRank024, isSameRank034, isSameRank123, isSameRank124, isSameRank134, isSameRank234;
     wire isSameRank0123, isSameRank0124, isSameRank0134, isSameRank0234, isSameRank1234;
-
-	// assign notGate
-	IV notExistThreeOfAKind_gate(notExistThreeOfAKind, existThreeOfAKind);
-	IV notFourOfAKind_gate(notFourOfAKind, isFourOfAKind);
-	IV notFullHouse_gate(notFullHouse, isFullHouse);
-	IV notThreeOfAKind_gate(notThreeOfAKind, isThreeOfAKind);
-	IV notTwoPair_gate(notTwoPair, isTwoPair);
 
     // any two ranks
     sameRankComparator2 compare01(isSameRank01, rank0, rank1);
@@ -108,83 +65,82 @@ module sameRankDetector(
 	sameRankComparator2 compare23(isSameRank23, rank2, rank3);
 	sameRankComparator2 compare24(isSameRank24, rank2, rank4);
 	sameRankComparator2 compare34(isSameRank34, rank3, rank4);
-    
-    // any three ranks
-    sameRankComparator3 compare012(isSameRank012, rank0, rank1, rank2);
-    sameRankComparator3 compare013(isSameRank013, rank0, rank1, rank3);
-    sameRankComparator3 compare014(isSameRank014, rank0, rank1, rank4);
-	sameRankComparator3 compare023(isSameRank023, rank0, rank2, rank3);
-	sameRankComparator3 compare024(isSameRank024, rank0, rank2, rank4);
-	sameRankComparator3 compare034(isSameRank034, rank0, rank3, rank4);
-	sameRankComparator3 compare123(isSameRank123, rank1, rank2, rank3);
-	sameRankComparator3 compare124(isSameRank124, rank1, rank2, rank4);
-	sameRankComparator3 compare134(isSameRank134, rank1, rank3, rank4);
-	sameRankComparator3 compare234(isSameRank234, rank2, rank3, rank4);
-
-    // any four ranks
-	sameRankComparator4 compare0123(isSameRank0123, rank0, rank1, rank2, rank3);
-	sameRankComparator4 compare0124(isSameRank0124, rank0, rank1, rank2, rank4);
-	sameRankComparator4 compare0134(isSameRank0134, rank0, rank1, rank3, rank4);
-	sameRankComparator4 compare0234(isSameRank0234, rank0, rank2, rank3, rank4);
-	sameRankComparator4 compare1234(isSameRank1234, rank1, rank2, rank3, rank4);
-
-    // check if exist two pairs
-	wire two_pair[14:0];
-	HA1 ha1_two_pair_1(.O(two_pair[0]), .A(isSameRank01), .B(isSameRank23));
-	HA1 ha1_two_pair_2(.O(two_pair[1]), .A(isSameRank01), .B(isSameRank24));
-	HA1 ha1_two_pair_3(.O(two_pair[2]), .A(isSameRank01), .B(isSameRank34));
-	HA1 ha1_two_pair_4(.O(two_pair[3]), .A(isSameRank02), .B(isSameRank13));
-	HA1 ha1_two_pair_5(.O(two_pair[4]), .A(isSameRank02), .B(isSameRank14));
-	HA1 ha1_two_pair_6(.O(two_pair[5]), .A(isSameRank02), .B(isSameRank34));
-	HA1 ha1_two_pair_7(.O(two_pair[6]), .A(isSameRank03), .B(isSameRank12));
-	HA1 ha1_two_pair_8(.O(two_pair[7]), .A(isSameRank03), .B(isSameRank14));
-	HA1 ha1_two_pair_9(.O(two_pair[8]), .A(isSameRank03), .B(isSameRank24));
-	HA1 ha1_two_pair_10(.O(two_pair[9]), .A(isSameRank04), .B(isSameRank12));
-	HA1 ha1_two_pair_11(.O(two_pair[10]), .A(isSameRank04), .B(isSameRank13));
-	HA1 ha1_two_pair_12(.O(two_pair[11]), .A(isSameRank04), .B(isSameRank23));
-	HA1 ha1_two_pair_13(.O(two_pair[12]), .A(isSameRank12), .B(isSameRank34));
-	HA1 ha1_two_pair_14(.O(two_pair[13]), .A(isSameRank13), .B(isSameRank24));
-	HA1 ha1_two_pair_15(.O(two_pair[14]), .A(isSameRank14), .B(isSameRank23));
-
-	wire temp1, temp2, temp3, temp4;
-	// OR4 or4_two_pair_1(temp1, two_pair[0], two_pair[1], two_pair[2], two_pair[3]);
-	// OR4 or4_two_pair_2(temp2, two_pair[4], two_pair[5], two_pair[6], two_pair[7]);
-	// OR4 or4_two_pair_3(temp3, two_pair[8], two_pair[9], two_pair[10], two_pair[11]);
-	// OR3 or3_two_pair(temp4, two_pair[12], two_pair[13], two_pair[14]);
-	// OR4 or4_two_pair(existTwoPair, temp1, temp2, temp3, temp4);
-	or or14(existTwoPair, two_pair[0], two_pair[1], two_pair[2], two_pair[3], two_pair[4], two_pair[5], two_pair[6], two_pair[7], two_pair[8], two_pair[9], two_pair[10], two_pair[11], two_pair[12], two_pair[13], two_pair[14]);
-
-    // check if exist three of a kind
-    wire or_three_1, or_three_2;
-    OR4 or4_three_1(or_three_1, isSameRank012, isSameRank013, isSameRank014, isSameRank023);
-    OR4 or4_three_2(or_three_2, isSameRank024, isSameRank034, isSameRank123, isSameRank124);
-    OR4 orr_three_3(existThreeOfAKind, or_three_1, or_three_2, isSameRank134, isSameRank234);
 
     // four of a kind
-    wire or_four_1;
-    OR4 or4_four(or_four_1, isSameRank0123, isSameRank0124, isSameRank0134, isSameRank0234);
-    OR2 or2_four(isFourOfAKind, or_four_1, isSameRank1234);
+	checkFourOfAKind fourOfAKind_gate(isNotFourOfAKind, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
 	// full house
-	checkFullHouse fullHouse_gate(isFullHouse, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	checkFullHouse fullHouse_gate(isNotFullHouse, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
 	// three of a kind
-	checkThreeOfAKind threeOfAKind_gate(isThreeOfAKind, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	checkThreeOfAKind threeOfAKind_gate(isNotThreeOfAKind, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
     // two pairs
-	checkTwoPairs twoPair_gate(isTwoPair, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	checkTwoPairs twoPair_gate(isNotTwoPairs, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
 
 	// one pair
-	checkOnlyOnePair onePair_gate(isPair, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+	checkOnlyOnePair onePair_gate(isNotOnlyOnePair, isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
+
+endmodule
+
+module checkFourOfAKind(
+	output isNotFourOfAKind,
+	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
+);
+
+	wire temp[5:0][3:0];
+	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
+
+	// assign notSameRank
+	IV notSameRank_gate0(isNotSameRank01, isSameRank01);
+	IV notSameRank_gate1(isNotSameRank02, isSameRank02);
+	IV notSameRank_gate2(isNotSameRank03, isSameRank03);
+	IV notSameRank_gate3(isNotSameRank04, isSameRank04);
+	IV notSameRank_gate4(isNotSameRank12, isSameRank12);
+	IV notSameRank_gate5(isNotSameRank13, isSameRank13);
+	IV notSameRank_gate6(isNotSameRank14, isSameRank14);
+	IV notSameRank_gate7(isNotSameRank23, isSameRank23);
+	IV notSameRank_gate8(isNotSameRank24, isSameRank24);
+	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
+
+	// assign combination
+	NR4 isNotSameRank_gate0(temp[0][0], isNotSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate1(temp[0][1], isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate2(temp[0][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate3(temp[0][3], temp[0][0], temp[0][1], temp[0][2]);
+
+	NR4 isNotSameRank_gate4(temp[1][0], isNotSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate5(temp[1][1], isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate6(temp[1][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate7(temp[1][3], temp[1][0], temp[1][1], temp[1][2]);
+
+	NR4 isNotSameRank_gate8(temp[2][0], isNotSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate9(temp[2][1], isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate10(temp[2][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate11(temp[2][3], temp[2][0], temp[2][1], temp[2][2]);
+	
+	NR4 isNotSameRank_gate12(temp[3][0], isSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate13(temp[3][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate14(temp[3][2], isNotSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate15(temp[3][3], temp[3][0], temp[3][1], temp[3][2]);
+
+	NR4 isNotSameRank_gate16(temp[4][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate17(temp[4][1], isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate18(temp[4][2], isNotSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate19(temp[4][3], temp[4][0], temp[4][1], temp[4][2]);
+
+	ND4 isNotSameRank_gate20(temp[5][0], temp[0][3], temp[1][3], temp[2][3], temp[3][3]);
+	IV  isNotSameRank_gate21(temp[5][1], temp[4][3]);
+	NR2 isNotSameRank_gate22(isNotFourOfAKind, temp[5][0], temp[5][1]);
 
 endmodule
 
 module checkFullHouse(
-	output isFullHouse,
+	output isNotFullHouse,
 	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
 );
 
-	wire combination[9:0];
+	wire temp[10:0][3:0];
 	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
 	// assign notSameRank
@@ -200,27 +156,69 @@ module checkFullHouse(
 	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
 	// assign combination
-	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate1(combination[1], isNotSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate2(combination[2], isNotSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate3(combination[3], isSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate4(combination[4], isSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate5(combination[5], isSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate8(combination[8], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate9(combination[9], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34);
+	NR4 isNotSameRank_gate0(temp[0][0], isNotSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate1(temp[0][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate2(temp[0][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate3(temp[0][3], temp[0][0], temp[0][1], temp[0][2]);
 
-	or or10_1(isFullHouse, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9]);
+	NR4 isNotSameRank_gate4(temp[1][0], isNotSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate5(temp[1][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate6(temp[1][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate7(temp[1][3], temp[1][0], temp[1][1], temp[1][2]);
+
+	NR4 isNotSameRank_gate8(temp[2][0], isNotSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate9(temp[2][1], isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate10(temp[2][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate11(temp[2][3], temp[2][0], temp[2][1], temp[2][2]);
+
+	NR4 isNotSameRank_gate12(temp[3][0], isSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate13(temp[3][1], isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate14(temp[3][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate15(temp[3][3], temp[3][0], temp[3][1], temp[3][2]);
+
+	NR4 isNotSameRank_gate16(temp[4][0], isSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate17(temp[4][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate18(temp[4][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate19(temp[4][3], temp[4][0], temp[4][1], temp[4][2]);
+
+	NR4 isNotSameRank_gate20(temp[5][0], isSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate21(temp[5][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate22(temp[5][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate23(temp[5][3], temp[5][0], temp[5][1], temp[5][2]);
+
+	NR4 isNotSameRank_gate24(temp[6][0], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate25(temp[6][1], isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate26(temp[6][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate27(temp[6][3], temp[6][0], temp[6][1], temp[6][2]);
+
+	NR4 isNotSameRank_gate28(temp[7][0], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate29(temp[7][1], isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate30(temp[7][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate31(temp[7][3], temp[7][0], temp[7][1], temp[7][2]);
+
+	NR4 isNotSameRank_gate32(temp[8][0], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate33(temp[8][1], isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate34(temp[8][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate35(temp[8][3], temp[8][0], temp[8][1], temp[8][2]);
+
+	NR4 isNotSameRank_gate36(temp[9][0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate37(temp[9][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate38(temp[9][2], isNotSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate39(temp[9][3], temp[9][0], temp[9][1], temp[9][2]);
+
+	ND4 isNotSameRank_gate40(temp[10][0], temp[0][3], temp[1][3], temp[2][3], temp[3][3]);
+	ND4 isNotSameRank_gate41(temp[10][1], temp[4][3], temp[5][3], temp[6][3], temp[7][3]);
+	ND2 isNotSameRank_gate42(temp[10][2], temp[8][3], temp[9][3]);
+	NR4 isNotSameRank_gate43(isNotFullHouse, temp[10][0], temp[10][1], temp[10][2], 1'b0);
 
 endmodule
 
 module checkThreeOfAKind(
-	output isThreeOfAKind,
+	output isNotThreeOfAKind,
 	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
 );
 
-	wire combination[9:0];
+	wire temp[10:0][3:0];
 	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
 	// assign notSameRank
@@ -236,27 +234,69 @@ module checkThreeOfAKind(
 	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
 	// assign combination
-	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate1(combination[1], isNotSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate2(combination[2], isNotSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate3(combination[3], isSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate4(combination[4], isSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate5(combination[5], isSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate8(combination[8], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate9(combination[9], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34);
+	NR4 isNotSameRank_gate0(temp[0][0], isNotSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate1(temp[0][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate2(temp[0][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate3(temp[0][3], temp[0][0], temp[0][1], temp[0][2]);
 
-	or or10_1(isThreeOfAKind, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9]);
+	NR4 isNotSameRank_gate4(temp[1][0], isNotSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate5(temp[1][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate6(temp[1][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate7(temp[1][3], temp[1][0], temp[1][1], temp[1][2]);
+
+	NR4 isNotSameRank_gate8(temp[2][0], isNotSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate9(temp[2][1], isSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate10(temp[2][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate11(temp[2][3], temp[2][0], temp[2][1], temp[2][2]);
+
+	NR4 isNotSameRank_gate12(temp[3][0], isSameRank01, isNotSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate13(temp[3][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate14(temp[3][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate15(temp[3][3], temp[3][0], temp[3][1], temp[3][2]);
+
+	NR4 isNotSameRank_gate16(temp[4][0], isSameRank01, isNotSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate17(temp[4][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate18(temp[4][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate19(temp[4][3], temp[4][0], temp[4][1], temp[4][2]);
+
+	NR4 isNotSameRank_gate20(temp[5][0], isSameRank01, isSameRank02, isNotSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate21(temp[5][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate22(temp[5][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate23(temp[5][3], temp[5][0], temp[5][1], temp[5][2]);
+
+	NR4 isNotSameRank_gate24(temp[6][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate25(temp[6][1], isNotSameRank12, isNotSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate26(temp[6][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate27(temp[6][3], temp[6][0], temp[6][1], temp[6][2]);
+
+	NR4 isNotSameRank_gate28(temp[7][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate29(temp[7][1], isNotSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate30(temp[7][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate31(temp[7][3], temp[7][0], temp[7][1], temp[7][2]);
+
+	NR4 isNotSameRank_gate32(temp[8][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate33(temp[8][1], isSameRank12, isNotSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate34(temp[8][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate35(temp[8][3], temp[8][0], temp[8][1], temp[8][2]);
+
+	NR4 isNotSameRank_gate36(temp[9][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate37(temp[9][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate38(temp[9][2], isNotSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate39(temp[9][3], temp[9][0], temp[9][1], temp[9][2]);
+
+	ND4 isNotSameRank_gate40(temp[10][0], temp[0][3], temp[1][3], temp[2][3], temp[3][3]);
+	ND4 isNotSameRank_gate41(temp[10][1], temp[4][3], temp[5][3], temp[6][3], temp[7][3]);
+	ND2 isNotSameRank_gate42(temp[10][2], temp[8][3], temp[9][3]);
+	NR4 isNotSameRank_gate43(isNotThreeOfAKind, temp[10][0], temp[10][1], temp[10][2], 1'b0);
 
 endmodule
 
 module checkTwoPairs(
-	output isTwoPairs,
+	output isNotTwoPairs,
 	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
 );
 
-	wire combination[14:0];
+	wire temp[15:0][3:0];
 	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
 	// assign notSameRank
@@ -272,32 +312,95 @@ module checkTwoPairs(
 	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
 	// assign combination
-	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate1(combination[1], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate2(combination[2], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate3(combination[3], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate4(combination[4], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate5(combination[5], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate8(combination[8], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate9(combination[9], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate10(combination[10], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate11(combination[11], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate12(combination[12], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
-	nor isNotSameRank_gate13(combination[13], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate14(combination[14], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
+	NR4 isNotSameRank_gate0(temp[0][0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate1(temp[0][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate2(temp[0][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate3(temp[0][3], temp[0][0], temp[0][1], temp[0][2]);
 
-	or or15_1(isTwoPairs, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9], combination[10], combination[11], combination[12], combination[13], combination[14]);
+	NR4 isNotSameRank_gate4(temp[1][0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate5(temp[1][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate6(temp[1][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate7(temp[1][3], temp[1][0], temp[1][1], temp[1][2]);
+
+	NR4 isNotSameRank_gate8(temp[2][0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate9(temp[2][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate10(temp[2][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate11(temp[2][3], temp[2][0], temp[2][1], temp[2][2]);
+
+	NR4 isNotSameRank_gate12(temp[3][0], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate13(temp[3][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate14(temp[3][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate15(temp[3][3], temp[3][0], temp[3][1], temp[3][2]);
+
+	NR4 isNotSameRank_gate16(temp[4][0], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate17(temp[4][1], isSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate18(temp[4][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate19(temp[4][3], temp[4][0], temp[4][1], temp[4][2]);
+
+	NR4 isNotSameRank_gate20(temp[5][0], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate21(temp[5][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate22(temp[5][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate23(temp[5][3], temp[5][0], temp[5][1], temp[5][2]);
+
+	NR4 isNotSameRank_gate24(temp[6][0], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate25(temp[6][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate26(temp[6][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate27(temp[6][3], temp[6][0], temp[6][1], temp[6][2]);
+
+	NR4 isNotSameRank_gate28(temp[7][0], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate29(temp[7][1], isSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate30(temp[7][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate31(temp[7][3], temp[7][0], temp[7][1], temp[7][2]);
+
+	NR4 isNotSameRank_gate32(temp[8][0], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate33(temp[8][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate34(temp[8][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate35(temp[8][3], temp[8][0], temp[8][1], temp[8][2]);
+
+	NR4 isNotSameRank_gate36(temp[9][0], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate37(temp[9][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate38(temp[9][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate39(temp[9][3], temp[9][0], temp[9][1], temp[9][2]);
+
+	NR4 isNotSameRank_gate40(temp[10][0], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate41(temp[10][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate42(temp[10][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate43(temp[10][3], temp[10][0], temp[10][1], temp[10][2]);
+
+	NR4 isNotSameRank_gate44(temp[11][0], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate45(temp[11][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate46(temp[11][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate47(temp[11][3], temp[11][0], temp[11][1], temp[11][2]);
+
+	NR4 isNotSameRank_gate48(temp[12][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate49(temp[12][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate50(temp[12][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate51(temp[12][3], temp[12][0], temp[12][1], temp[12][2]);
+
+	NR4 isNotSameRank_gate52(temp[13][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate53(temp[13][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate54(temp[13][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate55(temp[13][3], temp[13][0], temp[13][1], temp[13][2]);
+
+	NR4 isNotSameRank_gate56(temp[14][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate57(temp[14][1], isSameRank12, isSameRank13, isNotSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate58(temp[14][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate59(temp[14][3], temp[14][0], temp[14][1], temp[14][2]);
+
+	ND4 isNotSameRank_gate60(temp[15][0], temp[0][3], temp[1][3], temp[2][3], temp[3][3]);
+	ND4 isNotSameRank_gate61(temp[15][1], temp[4][3], temp[5][3], temp[6][3], temp[7][3]);
+	ND4 isNotSameRank_gate62(temp[15][2], temp[8][3], temp[9][3], temp[10][3], temp[11][3]);
+	ND4 isNotSameRank_gate63(temp[15][3], temp[12][3], temp[13][3], temp[14][3], 1'b1);
+	NR4 isNotSameRank_gate64(isNotTwoPairs, temp[15][0], temp[15][1], temp[15][2], temp[15][3]);
 
 endmodule
 
 module checkOnlyOnePair(
-	output isOnlyOnePair,
+	output isNotOnlyOnePair,
 	input isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34
 );
 
-	wire combination[9:0];
+	wire temp[10:0][3:0];
 	wire isNotSameRank01, isNotSameRank02, isNotSameRank03, isNotSameRank04, isNotSameRank12, isNotSameRank13, isNotSameRank14, isNotSameRank23, isNotSameRank24, isNotSameRank34;
 
 	// assign notSameRank
@@ -313,391 +416,66 @@ module checkOnlyOnePair(
 	IV notSameRank_gate9(isNotSameRank34, isSameRank34);
 
 	// assign combination
-	nor isNotSameRank_gate0(combination[0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate1(combination[1], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate2(combination[2], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate3(combination[3], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate4(combination[4], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isNotSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate5(combination[5], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isNotSameRank13, isSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate6(combination[6], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isNotSameRank14, isSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate7(combination[7], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isNotSameRank23, isSameRank24, isSameRank34);
-	nor isNotSameRank_gate8(combination[8], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isNotSameRank24, isSameRank34);
-	nor isNotSameRank_gate9(combination[9], isSameRank01, isSameRank02, isSameRank03, isSameRank04, isSameRank12, isSameRank13, isSameRank14, isSameRank23, isSameRank24, isNotSameRank34);
+	NR4 isNotSameRank_gate0(temp[0][0], isNotSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate1(temp[0][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate2(temp[0][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate3(temp[0][3], temp[0][0], temp[0][1], temp[0][2]);
 
-	or or10_1(isOnlyOnePair, combination[0], combination[1], combination[2], combination[3], combination[4], combination[5], combination[6], combination[7], combination[8], combination[9]);
-	
-endmodule
+	NR4 isNotSameRank_gate4(temp[1][0], isSameRank01, isNotSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate5(temp[1][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate6(temp[1][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate7(temp[1][3], temp[1][0], temp[1][1], temp[1][2]);
 
-module checkStraightA2345(
-	output isStraightA2345,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
+	NR4 isNotSameRank_gate8(temp[2][0], isSameRank01, isSameRank02, isNotSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate9(temp[2][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate10(temp[2][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate11(temp[2][3], temp[2][0], temp[2][1], temp[2][2]);
 
-	wire isA2345[4:0];
-	wire recordA2345[4:0][4:0];
+	NR4 isNotSameRank_gate12(temp[3][0], isSameRank01, isSameRank02, isSameRank03, isNotSameRank04);
+	NR4 isNotSameRank_gate13(temp[3][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate14(temp[3][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate15(temp[3][3], temp[3][0], temp[3][1], temp[3][2]);
 
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
+	NR4 isNotSameRank_gate16(temp[4][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate17(temp[4][1], isNotSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate18(temp[4][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate19(temp[4][3], temp[4][0], temp[4][1], temp[4][2]);
 
-	genvar i;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIsA checkIfRankIsA(recordA2345[i][0], rank[i]);
-			checkIfRankIs2 checkIfRankIs2(recordA2345[i][1], rank[i]);
-			checkIfRankIs3 checkIfRankIs3(recordA2345[i][2], rank[i]);
-			checkIfRankIs4 checkIfRankIs4(recordA2345[i][3], rank[i]);
-			checkIfRankIs5 checkIfRankIs5(recordA2345[i][4], rank[i]);
-		end
-	endgenerate
+	NR4 isNotSameRank_gate20(temp[5][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate21(temp[5][1], isSameRank12, isNotSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate22(temp[5][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate23(temp[5][3], temp[5][0], temp[5][1], temp[5][2]);
 
-	OR5 or5_1(isA2345[0], recordA2345[0][0], recordA2345[1][0], recordA2345[2][0], recordA2345[3][0], recordA2345[4][0]);
-	OR5 or5_2(isA2345[1], recordA2345[0][1], recordA2345[1][1], recordA2345[2][1], recordA2345[3][1], recordA2345[4][1]);
-	OR5 or5_3(isA2345[2], recordA2345[0][2], recordA2345[1][2], recordA2345[2][2], recordA2345[3][2], recordA2345[4][2]);
-	OR5 or5_4(isA2345[3], recordA2345[0][3], recordA2345[1][3], recordA2345[2][3], recordA2345[3][3], recordA2345[4][3]);
-	OR5 or5_5(isA2345[4], recordA2345[0][4], recordA2345[1][4], recordA2345[2][4], recordA2345[3][4], recordA2345[4][4]);
-	AN5 and5_1(isStraightA2345, isA2345[0], isA2345[1], isA2345[2], isA2345[3], isA2345[4]);
+	NR4 isNotSameRank_gate24(temp[6][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate25(temp[6][1], isSameRank12, isSameRank13, isNotSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate26(temp[6][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate27(temp[6][3], temp[6][0], temp[6][1], temp[6][2]);
 
-endmodule
+	NR4 isNotSameRank_gate28(temp[7][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate29(temp[7][1], isSameRank12, isSameRank13, isSameRank14, isNotSameRank23);
+	NR2 isNotSameRank_gate30(temp[7][2], isSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate31(temp[7][3], temp[7][0], temp[7][1], temp[7][2]);
 
-module checkStraight23456(
-	output isStraight23456,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
+	NR4 isNotSameRank_gate32(temp[8][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate33(temp[8][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate34(temp[8][2], isNotSameRank24, isSameRank34);
+	ND3 isNotSameRank_gate35(temp[8][3], temp[8][0], temp[8][1], temp[8][2]);
 
-	wire is23456[4:0];
-	wire record23456[4:0][4:0];
+	NR4 isNotSameRank_gate36(temp[9][0], isSameRank01, isSameRank02, isSameRank03, isSameRank04);
+	NR4 isNotSameRank_gate37(temp[9][1], isSameRank12, isSameRank13, isSameRank14, isSameRank23);
+	NR2 isNotSameRank_gate38(temp[9][2], isSameRank24, isNotSameRank34);
+	ND3 isNotSameRank_gate39(temp[9][3], temp[9][0], temp[9][1], temp[9][2]);
 
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-
-	genvar i;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs2 checkIfRankIs2(record23456[i][0], rank[i]);
-			checkIfRankIs3 checkIfRankIs3(record23456[i][1], rank[i]);
-			checkIfRankIs4 checkIfRankIs4(record23456[i][2], rank[i]);
-			checkIfRankIs5 checkIfRankIs5(record23456[i][3], rank[i]);
-			checkIfRankIs6 checkIfRankIs6(record23456[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is23456[0], record23456[0][0], record23456[1][0], record23456[2][0], record23456[3][0], record23456[4][0]);
-	OR5 or5_2(is23456[1], record23456[0][1], record23456[1][1], record23456[2][1], record23456[3][1], record23456[4][1]);
-	OR5 or5_3(is23456[2], record23456[0][2], record23456[1][2], record23456[2][2], record23456[3][2], record23456[4][2]);
-	OR5 or5_4(is23456[3], record23456[0][3], record23456[1][3], record23456[2][3], record23456[3][3], record23456[4][3]);
-	OR5 or5_5(is23456[4], record23456[0][4], record23456[1][4], record23456[2][4], record23456[3][4], record23456[4][4]);
-	AN5 and5_1(isStraight23456, is23456[0], is23456[1], is23456[2], is23456[3], is23456[4]);
-
-endmodule
-
-module checkStraight34567(
-	output isStraight34567,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is34567[4:0];
-	wire record34567[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-
-	genvar i;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs3 checkIfRankIs3(record34567[i][0], rank[i]);
-			checkIfRankIs4 checkIfRankIs4(record34567[i][1], rank[i]);
-			checkIfRankIs5 checkIfRankIs5(record34567[i][2], rank[i]);
-			checkIfRankIs6 checkIfRankIs6(record34567[i][3], rank[i]);
-			checkIfRankIs7 checkIfRankIs7(record34567[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is34567[0], record34567[0][0], record34567[1][0], record34567[2][0], record34567[3][0], record34567[4][0]);
-	OR5 or5_2(is34567[1], record34567[0][1], record34567[1][1], record34567[2][1], record34567[3][1], record34567[4][1]);
-	OR5 or5_3(is34567[2], record34567[0][2], record34567[1][2], record34567[2][2], record34567[3][2], record34567[4][2]);
-	OR5 or5_4(is34567[3], record34567[0][3], record34567[1][3], record34567[2][3], record34567[3][3], record34567[4][3]);
-	OR5 or5_5(is34567[4], record34567[0][4], record34567[1][4], record34567[2][4], record34567[3][4], record34567[4][4]);
-	AN5 and5_1(isStraight34567, is34567[0], is34567[1], is34567[2], is34567[3], is34567[4]);
-
-endmodule
-
-module checkStraight45678(
-	output isStraight45678,
-	input [3:0] rank0, rank1, rank2, rank3, rank4,
-	output is4, is5, is6, is7, is8
-);
-
-	wire is45678[4:0];
-	wire record45678[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-
-	assign is4 = is45678[0];
-	assign is5 = is45678[1];
-	assign is6 = is45678[2];
-	assign is7 = is45678[3];
-	assign is8 = is45678[4];
-
-	genvar i;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs4 checkIfRankIs4(record45678[i][0], rank[i]);
-			checkIfRankIs5 checkIfRankIs5(record45678[i][1], rank[i]);
-			checkIfRankIs6 checkIfRankIs6(record45678[i][2], rank[i]);
-			checkIfRankIs7 checkIfRankIs7(record45678[i][3], rank[i]);
-			checkIfRankIs8 checkIfRankIs8(record45678[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is45678[0], record45678[0][0], record45678[1][0], record45678[2][0], record45678[3][0], record45678[4][0]);
-	OR5 or5_2(is45678[1], record45678[0][1], record45678[1][1], record45678[2][1], record45678[3][1], record45678[4][1]);
-	OR5 or5_3(is45678[2], record45678[0][2], record45678[1][2], record45678[2][2], record45678[3][2], record45678[4][2]);
-	OR5 or5_4(is45678[3], record45678[0][3], record45678[1][3], record45678[2][3], record45678[3][3], record45678[4][3]);
-	OR5 or5_5(is45678[4], record45678[0][4], record45678[1][4], record45678[2][4], record45678[3][4], record45678[4][4]);
-	AN5 and5_1(isStraight45678, is45678[0], is45678[1], is45678[2], is45678[3], is45678[4]);
-
-endmodule
-
-module checkStraight56789(
-	output isStraight56789,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is56789[4:0];
-	wire record56789[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-
-	genvar i, j;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs5 checkIfRankIs5(record56789[i][0], rank[i]);
-			checkIfRankIs6 checkIfRankIs6(record56789[i][1], rank[i]);
-			checkIfRankIs7 checkIfRankIs7(record56789[i][2], rank[i]);
-			checkIfRankIs8 checkIfRankIs8(record56789[i][3], rank[i]);
-			checkIfRankIs9 checkIfRankIs9(record56789[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is56789[0], record56789[0][0], record56789[1][0], record56789[2][0], record56789[3][0], record56789[4][0]);
-	OR5 or5_2(is56789[1], record56789[0][1], record56789[1][1], record56789[2][1], record56789[3][1], record56789[4][1]);
-	OR5 or5_3(is56789[2], record56789[0][2], record56789[1][2], record56789[2][2], record56789[3][2], record56789[4][2]);
-	OR5 or5_4(is56789[3], record56789[0][3], record56789[1][3], record56789[2][3], record56789[3][3], record56789[4][3]);
-	OR5 or5_5(is56789[4], record56789[0][4], record56789[1][4], record56789[2][4], record56789[3][4], record56789[4][4]);
-	AN5 and5_1(isStraight56789, is56789[0], is56789[1], is56789[2], is56789[3], is56789[4]);
-
-endmodule
-
-module checkStraight678910(
-	output isStraight678910,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is678910[4:0];
-	wire record678910[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-
-	genvar i, j;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs6 checkIfRankIs6(record678910[i][0], rank[i]);
-			checkIfRankIs7 checkIfRankIs7(record678910[i][1], rank[i]);
-			checkIfRankIs8 checkIfRankIs8(record678910[i][2], rank[i]);
-			checkIfRankIs9 checkIfRankIs9(record678910[i][3], rank[i]);
-			checkIfRankIs10 checkIfRankIs10(record678910[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is678910[0], record678910[0][0], record678910[1][0], record678910[2][0], record678910[3][0], record678910[4][0]);
-	OR5 or5_2(is678910[1], record678910[0][1], record678910[1][1], record678910[2][1], record678910[3][1], record678910[4][1]);
-	OR5 or5_3(is678910[2], record678910[0][2], record678910[1][2], record678910[2][2], record678910[3][2], record678910[4][2]);
-	OR5 or5_4(is678910[3], record678910[0][3], record678910[1][3], record678910[2][3], record678910[3][3], record678910[4][3]);
-	OR5 or5_5(is678910[4], record678910[0][4], record678910[1][4], record678910[2][4], record678910[3][4], record678910[4][4]);
-	AN5 and5_1(isStraight678910, is678910[0], is678910[1], is678910[2], is678910[3], is678910[4]);
-
-endmodule
-
-module checkStraight78910J(
-	output isStraight78910J,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is78910J[4:0];
-	wire record78910J[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-
-	genvar i, j;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs7 checkIfRankIs7(record78910J[i][0], rank[i]);
-			checkIfRankIs8 checkIfRankIs8(record78910J[i][1], rank[i]);
-			checkIfRankIs9 checkIfRankIs9(record78910J[i][2], rank[i]);
-			checkIfRankIs10 checkIfRankIs10(record78910J[i][3], rank[i]);
-			checkIfRankIsJ checkIfRankIsJ(record78910J[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is78910J[0], record78910J[0][0], record78910J[1][0], record78910J[2][0], record78910J[3][0], record78910J[4][0]);
-	OR5 or5_2(is78910J[1], record78910J[0][1], record78910J[1][1], record78910J[2][1], record78910J[3][1], record78910J[4][1]);
-	OR5 or5_3(is78910J[2], record78910J[0][2], record78910J[1][2], record78910J[2][2], record78910J[3][2], record78910J[4][2]);
-	OR5 or5_4(is78910J[3], record78910J[0][3], record78910J[1][3], record78910J[2][3], record78910J[3][3], record78910J[4][3]);
-	OR5 or5_5(is78910J[4], record78910J[0][4], record78910J[1][4], record78910J[2][4], record78910J[3][4], record78910J[4][4]);
-	AN5 and5_1(isStraight78910J, is78910J[0], is78910J[1], is78910J[2], is78910J[3], is78910J[4]);
-
-endmodule
-
-module checkStraight8910JQ(
-	output isStraight8910JQ,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is8910JQ[4:0];
-	wire record8910JQ[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-	
-	genvar i, j;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs8 checkIfRankIs8(record8910JQ[i][0], rank[i]);
-			checkIfRankIs9 checkIfRankIs9(record8910JQ[i][1], rank[i]);
-			checkIfRankIs10 checkIfRankIs10(record8910JQ[i][2], rank[i]);
-			checkIfRankIsJ checkIfRankIsJ(record8910JQ[i][3], rank[i]);
-			checkIfRankIsQ checkIfRankIsQ(record8910JQ[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is8910JQ[0], record8910JQ[0][0], record8910JQ[1][0], record8910JQ[2][0], record8910JQ[3][0], record8910JQ[4][0]);
-	OR5 or5_2(is8910JQ[1], record8910JQ[0][1], record8910JQ[1][1], record8910JQ[2][1], record8910JQ[3][1], record8910JQ[4][1]);
-	OR5 or5_3(is8910JQ[2], record8910JQ[0][2], record8910JQ[1][2], record8910JQ[2][2], record8910JQ[3][2], record8910JQ[4][2]);
-	OR5 or5_4(is8910JQ[3], record8910JQ[0][3], record8910JQ[1][3], record8910JQ[2][3], record8910JQ[3][3], record8910JQ[4][3]);
-	OR5 or5_5(is8910JQ[4], record8910JQ[0][4], record8910JQ[1][4], record8910JQ[2][4], record8910JQ[3][4], record8910JQ[4][4]);
-	AN5 and5_1(isStraight8910JQ, is8910JQ[0], is8910JQ[1], is8910JQ[2], is8910JQ[3], is8910JQ[4]);
-
-endmodule
-
-module checkStraight910JQK(
-	output isStraight910JQK,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is910JQK[4:0];
-	wire record910JQK[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-	
-	genvar i, j;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs9 checkIfRankIs9(record910JQK[i][0], rank[i]);
-			checkIfRankIs10 checkIfRankIs10(record910JQK[i][1], rank[i]);
-			checkIfRankIsJ checkIfRankIsJ(record910JQK[i][2], rank[i]);
-			checkIfRankIsQ checkIfRankIsQ(record910JQK[i][3], rank[i]);
-			checkIfRankIsK checkIfRankIsK(record910JQK[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is910JQK[0], record910JQK[0][0], record910JQK[1][0], record910JQK[2][0], record910JQK[3][0], record910JQK[4][0]);
-	OR5 or5_2(is910JQK[1], record910JQK[0][1], record910JQK[1][1], record910JQK[2][1], record910JQK[3][1], record910JQK[4][1]);
-	OR5 or5_3(is910JQK[2], record910JQK[0][2], record910JQK[1][2], record910JQK[2][2], record910JQK[3][2], record910JQK[4][2]);
-	OR5 or5_4(is910JQK[3], record910JQK[0][3], record910JQK[1][3], record910JQK[2][3], record910JQK[3][3], record910JQK[4][3]);
-	OR5 or5_5(is910JQK[4], record910JQK[0][4], record910JQK[1][4], record910JQK[2][4], record910JQK[3][4], record910JQK[4][4]);
-	AN5 and5_1(isStraight910JQK, is910JQK[0], is910JQK[1], is910JQK[2], is910JQK[3], is910JQK[4]);
-
-endmodule
-
-module checkStraight10JQKA(
-	output isStraight10JQKA,
-	input [3:0] rank0, rank1, rank2, rank3, rank4
-);
-
-	wire is10JQKA[4:0];
-	wire record10JQKA[4:0][4:0];
-
-	wire [3:0] rank[4:0];
-	assign rank[0] = rank0;
-	assign rank[1] = rank1;
-	assign rank[2] = rank2;
-	assign rank[3] = rank3;
-	assign rank[4] = rank4;
-	
-	genvar i;
-	generate
-		for (i = 0; i < 5; i = i + 1)
-		begin
-			checkIfRankIs10 checkIfRankIs10(record10JQKA[i][0], rank[i]);
-			checkIfRankIsJ checkIfRankIsJ(record10JQKA[i][1], rank[i]);
-			checkIfRankIsQ checkIfRankIsQ(record10JQKA[i][2], rank[i]);
-			checkIfRankIsK checkIfRankIsK(record10JQKA[i][3], rank[i]);
-			checkIfRankIsA checkIfRankIsA(record10JQKA[i][4], rank[i]);
-		end
-	endgenerate
-
-	OR5 or5_1(is10JQKA[0], record10JQKA[0][0], record10JQKA[1][0], record10JQKA[2][0], record10JQKA[3][0], record10JQKA[4][0]);
-	OR5 or5_2(is10JQKA[1], record10JQKA[0][1], record10JQKA[1][1], record10JQKA[2][1], record10JQKA[3][1], record10JQKA[4][1]);
-	OR5 or5_3(is10JQKA[2], record10JQKA[0][2], record10JQKA[1][2], record10JQKA[2][2], record10JQKA[3][2], record10JQKA[4][2]);
-	OR5 or5_4(is10JQKA[3], record10JQKA[0][3], record10JQKA[1][3], record10JQKA[2][3], record10JQKA[3][3], record10JQKA[4][3]);
-	OR5 or5_5(is10JQKA[4], record10JQKA[0][4], record10JQKA[1][4], record10JQKA[2][4], record10JQKA[3][4], record10JQKA[4][4]);
-	AN5 and5_1(isStraight10JQKA, is10JQKA[0], is10JQKA[1], is10JQKA[2], is10JQKA[3], is10JQKA[4]);
+	ND4 isNotSameRank_gate40(temp[10][0], temp[0][3], temp[1][3], temp[2][3], temp[3][3]);
+	ND4 isNotSameRank_gate41(temp[10][1], temp[4][3], temp[5][3], temp[6][3], temp[7][3]);
+	ND2 isNotSameRank_gate42(temp[10][2], temp[8][3], temp[9][3]);
+	NR4 isNotSameRank_gate43(isNotOnlyOnePair, temp[10][0], temp[10][1], temp[10][2], 1'b0);
 
 endmodule
 
 module straightDetector(
 	input [3:0] rank0, rank1, rank2, rank3, rank4,
-	output isStraight, isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA
+	output isStraight, isNotStraight
 );
 
 	wire [3:0] rank[4:0];
@@ -729,34 +507,13 @@ module straightDetector(
 	checkStraight910JQK checkStraight910JQK(isStraight910JQK, rank[0], rank[1], rank[2], rank[3], rank[4]);
 	checkStraight10JQKA checkStraight10JQKA(isStraight10JQKA, rank[0], rank[1], rank[2], rank[3], rank[4]);
 
-	or or_1(isStraight, isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
-
-	// wire possibleStraight;
-	// // OR2 or2_1(possibleStraight, isPairCount4, isStraight10JQKA);
-	// or or_1(possibleStraight, isPairCount4, isStraight10JQKA);
-
-
-endmodule
-
-module OR5(
-	output out,
-	input in0, in1, in2, in3, in4
-);
-
-	wire temp;
-	OR3 or3_1(temp, in0, in1, in2);
-	OR3 or3_2(out, temp, in3, in4);
-
-endmodule
-
-module AN5(
-	output out,
-	input in0, in1, in2, in3, in4
-);
-
-	wire temp;
-	AN3 an3_1(temp, in0, in1, in2);
-	AN3 an3_2(out, temp, in3, in4);
+	// or or_1(isStraight, isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
+	wire temp[2:0];
+	NR4 isStraight_gate0(temp[0], isStraightA2345, isStraight23456, isStraight34567, isStraight45678);
+	NR4 isStraight_gate1(temp[1], isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ);
+	NR2 isStraight_gate2(temp[2], isStraight910JQK, isStraight10JQKA);
+	ND3 isStraight_gate3(isStraight, temp[0], temp[1], temp[2]);
+	AN3 isNotStraight_gate4(isNotStraight, temp[0], temp[1], temp[2]);
 
 endmodule
 
@@ -776,40 +533,37 @@ module poker(type, i0, i1, i2, i3, i4);
     assign suit[3] = i3[5:4]; assign rank[3] = i3[3:0];
     assign suit[4] = i4[5:4]; assign rank[4] = i4[3:0];
 
+	wire isFlush, isStraight;
+	wire isNotFlush, isNotOnlyOnePair, isNotTwoPairs, isNotThreeOfAKind, isNotFourOfAKind, isNotFullHouse, isNotStraight, isNotStraightFlush;
+
 	// flush detector
-	wire isFlush;
 	flushDetector flushDetector(
 		.suit0(suit[0]), .suit1(suit[1]), .suit2(suit[2]), .suit3(suit[3]), .suit4(suit[4]),
-		.isFlush(isFlush)
+		.isFlush(isFlush), .isNotFlush(isNotFlush)
 	);
 
 	// same rank detector
-	wire isPair, isTwoPair, isThreeOfAKind, isFourOfAKind, isFullHouse, isStraight, isStraightFlush;
 	sameRankDetector sameRankDetector(
 		.rank0(rank[0]), .rank1(rank[1]), .rank2(rank[2]), .rank3(rank[3]), .rank4(rank[4]),
-		.isPair(isPair), .isTwoPair(isTwoPair), .isThreeOfAKind(isThreeOfAKind), .isFourOfAKind(isFourOfAKind), .isFullHouse(isFullHouse)
+		.isNotOnlyOnePair(isNotOnlyOnePair), .isNotTwoPairs(isNotTwoPairs), .isNotThreeOfAKind(isNotThreeOfAKind), .isNotFourOfAKind(isNotFourOfAKind), .isNotFullHouse(isNotFullHouse)
 	);
 
 	// straight detector
 	straightDetector straightDetector(
 		.rank0(rank[0]), .rank1(rank[1]), .rank2(rank[2]), .rank3(rank[3]), .rank4(rank[4]),
-		.isStraight(isStraight)
+		.isStraight(isStraight), .isNotStraight(isNotStraight)
 	);
 
 	// type determination
-	wire straight, flush;
+	wire notStraight, notFlush;
 
-	IV notFlush_gate(isNotFlush, isFlush);
-	IV notStraight_gate(isNotStraight, isStraight);
+	ND2 flush_gate(notFlush, isFlush, isNotStraight);
+	ND2 straight_gate(notStraight, isStraight, isNotFlush);
 
-	HA1 straightFlush_gate(.O(isStraightFlush), .A(isFlush), .B(isStraight));
-	HA1 flush_gate(.O(flush), .A(isFlush), .B(isNotStraight));
-	HA1 straight_gate(.O(straight), .A(isStraight), .B(isNotFlush));
-
-	assign type[3] = isStraightFlush;
-	OR4 type_2(type[2], isFourOfAKind, isFullHouse, flush, straight); // four of a kind, full house, flush, straight
-	OR4 type_1(type[1], isFourOfAKind, isFullHouse, isThreeOfAKind, isTwoPair); // four of a kind, full house, three of a kind, two pairs
-	OR4 type_0(type[0], isFourOfAKind, flush, isThreeOfAKind, isPair); // four of a kind, flush, three of a kind, one pair
+	HA1 type_3(.O(type[3]), .A(isFlush), .B(isStraight));
+	ND4 type_2(type[2], isNotFourOfAKind, isNotFullHouse, notFlush, notStraight); // four of a kind, full house, flush, straight
+	ND4 type_1(type[1], isNotFourOfAKind, isNotFullHouse, isNotThreeOfAKind, isNotTwoPairs); // four of a kind, full house, three of a kind, two pairs
+	ND4 type_0(type[0], isNotFourOfAKind, notFlush, isNotThreeOfAKind, isNotOnlyOnePair); // four of a kind, flush, three of a kind, one pair
 
 endmodule
 
@@ -979,3 +733,604 @@ module checkIfRankIsK( // 4'b1101
 
 endmodule
 
+
+module checkStraightA2345(
+	output isStraightA2345,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire isA2345[4:0][2:0];
+	wire recordA2345[4:0][4:0];
+	wire notRecordA2345[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIsA checkIfRankIsA(recordA2345[i][0], rank[i]);
+			checkIfRankIs2 checkIfRankIs2(recordA2345[i][1], rank[i]);
+			checkIfRankIs3 checkIfRankIs3(recordA2345[i][2], rank[i]);
+			checkIfRankIs4 checkIfRankIs4(recordA2345[i][3], rank[i]);
+			checkIfRankIs5 checkIfRankIs5(recordA2345[i][4], rank[i]);
+			IV notRecordA2345_0(notRecordA2345[i][0], recordA2345[i][0]);
+			IV notRecordA2345_1(notRecordA2345[i][1], recordA2345[i][1]);
+			IV notRecordA2345_2(notRecordA2345[i][2], recordA2345[i][2]);
+			IV notRecordA2345_3(notRecordA2345[i][3], recordA2345[i][3]);
+			IV notRecordA2345_4(notRecordA2345[i][4], recordA2345[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(isA2345[0][0], recordA2345[0][0], recordA2345[1][0], recordA2345[2][0], 1'b0);
+	NR2 nor2_1(isA2345[0][1], recordA2345[3][0], recordA2345[4][0]);
+	ND2 nand2_1(isA2345[0][2], isA2345[0][0], isA2345[0][1]);
+
+	NR4 nor4_2(isA2345[1][0], recordA2345[0][1], recordA2345[1][1], recordA2345[2][1], 1'b0);
+	NR2 nor2_2(isA2345[1][1], recordA2345[3][1], recordA2345[4][1]);
+	ND2 nand2_2(isA2345[1][2], isA2345[1][0], isA2345[1][1]);
+
+	NR4 nor4_3(isA2345[2][0], recordA2345[0][2], recordA2345[1][2], recordA2345[2][2], 1'b0);
+	NR2 nor2_3(isA2345[2][1], recordA2345[3][2], recordA2345[4][2]);
+	ND2 nand2_3(isA2345[2][2], isA2345[2][0], isA2345[2][1]);
+
+	NR4 nor4_4(isA2345[3][0], recordA2345[0][3], recordA2345[1][3], recordA2345[2][3], 1'b0);
+	NR2 nor2_4(isA2345[3][1], recordA2345[3][3], recordA2345[4][3]);
+	ND2 nand2_4(isA2345[3][2], isA2345[3][0], isA2345[3][1]);
+
+	NR4 nor4_5(isA2345[4][0], recordA2345[0][4], recordA2345[1][4], recordA2345[2][4], 1'b0);
+	NR2 nor2_5(isA2345[4][1], recordA2345[3][4], recordA2345[4][4]);
+	ND2 nand2_5(isA2345[4][2], isA2345[4][0], isA2345[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], isA2345[0][2], isA2345[1][2], isA2345[2][2]);
+	ND2 nand2_6(temp[1], isA2345[3][2], isA2345[4][2]);
+	NR2 nor_1(isStraightA2345, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight23456(
+	output isStraight23456,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is23456[4:0][2:0];
+	wire record23456[4:0][4:0];
+	wire notRecord23456[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs2 checkIfRankIs2(record23456[i][0], rank[i]);
+			checkIfRankIs3 checkIfRankIs3(record23456[i][1], rank[i]);
+			checkIfRankIs4 checkIfRankIs4(record23456[i][2], rank[i]);
+			checkIfRankIs5 checkIfRankIs5(record23456[i][3], rank[i]);
+			checkIfRankIs6 checkIfRankIs6(record23456[i][4], rank[i]);
+			IV notRecord23456_0(notRecord23456[i][0], record23456[i][0]);
+			IV notRecord23456_1(notRecord23456[i][1], record23456[i][1]);
+			IV notRecord23456_2(notRecord23456[i][2], record23456[i][2]);
+			IV notRecord23456_3(notRecord23456[i][3], record23456[i][3]);
+			IV notRecord23456_4(notRecord23456[i][4], record23456[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is23456[0][0], record23456[0][0], record23456[1][0], record23456[2][0], 1'b0);
+	NR2 nor2_1(is23456[0][1], record23456[3][0], record23456[4][0]);
+	ND2 nand2_1(is23456[0][2], is23456[0][0], is23456[0][1]);
+
+	NR4 nor4_2(is23456[1][0], record23456[0][1], record23456[1][1], record23456[2][1], 1'b0);
+	NR2 nor2_2(is23456[1][1], record23456[3][1], record23456[4][1]);
+	ND2 nand2_2(is23456[1][2], is23456[1][0], is23456[1][1]);
+
+	NR4 nor4_3(is23456[2][0], record23456[0][2], record23456[1][2], record23456[2][2], 1'b0);
+	NR2 nor2_3(is23456[2][1], record23456[3][2], record23456[4][2]);
+	ND2 nand2_3(is23456[2][2], is23456[2][0], is23456[2][1]);
+
+	NR4 nor4_4(is23456[3][0], record23456[0][3], record23456[1][3], record23456[2][3], 1'b0);
+	NR2 nor2_4(is23456[3][1], record23456[3][3], record23456[4][3]);
+	ND2 nand2_4(is23456[3][2], is23456[3][0], is23456[3][1]);
+
+	NR4 nor4_5(is23456[4][0], record23456[0][4], record23456[1][4], record23456[2][4], 1'b0);
+	NR2 nor2_5(is23456[4][1], record23456[3][4], record23456[4][4]);
+	ND2 nand2_5(is23456[4][2], is23456[4][0], is23456[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is23456[0][2], is23456[1][2], is23456[2][2]);
+	ND2 nand2_6(temp[1], is23456[3][2], is23456[4][2]);
+	NR2 nor_1(isStraight23456, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight34567(
+	output isStraight34567,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is34567[4:0][2:0];
+	wire record34567[4:0][4:0];
+	wire notRecord34567[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs3 checkIfRankIs3(record34567[i][0], rank[i]);
+			checkIfRankIs4 checkIfRankIs4(record34567[i][1], rank[i]);
+			checkIfRankIs5 checkIfRankIs5(record34567[i][2], rank[i]);
+			checkIfRankIs6 checkIfRankIs6(record34567[i][3], rank[i]);
+			checkIfRankIs7 checkIfRankIs7(record34567[i][4], rank[i]);
+			IV notRecord34567_0(notRecord34567[i][0], record34567[i][0]);
+			IV notRecord34567_1(notRecord34567[i][1], record34567[i][1]);
+			IV notRecord34567_2(notRecord34567[i][2], record34567[i][2]);
+			IV notRecord34567_3(notRecord34567[i][3], record34567[i][3]);
+			IV notRecord34567_4(notRecord34567[i][4], record34567[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is34567[0][0], record34567[0][0], record34567[1][0], record34567[2][0], 1'b0);
+	NR2 nor2_1(is34567[0][1], record34567[3][0], record34567[4][0]);
+	ND2 nand2_1(is34567[0][2], is34567[0][0], is34567[0][1]);
+
+	NR4 nor4_2(is34567[1][0], record34567[0][1], record34567[1][1], record34567[2][1], 1'b0);
+	NR2 nor2_2(is34567[1][1], record34567[3][1], record34567[4][1]);
+	ND2 nand2_2(is34567[1][2], is34567[1][0], is34567[1][1]);
+
+	NR4 nor4_3(is34567[2][0], record34567[0][2], record34567[1][2], record34567[2][2], 1'b0);
+	NR2 nor2_3(is34567[2][1], record34567[3][2], record34567[4][2]);
+	ND2 nand2_3(is34567[2][2], is34567[2][0], is34567[2][1]);
+
+	NR4 nor4_4(is34567[3][0], record34567[0][3], record34567[1][3], record34567[2][3], 1'b0);
+	NR2 nor2_4(is34567[3][1], record34567[3][3], record34567[4][3]);
+	ND2 nand2_4(is34567[3][2], is34567[3][0], is34567[3][1]);
+
+	NR4 nor4_5(is34567[4][0], record34567[0][4], record34567[1][4], record34567[2][4], 1'b0);
+	NR2 nor2_5(is34567[4][1], record34567[3][4], record34567[4][4]);
+	ND2 nand2_5(is34567[4][2], is34567[4][0], is34567[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is34567[0][2], is34567[1][2], is34567[2][2]);
+	ND2 nand2_6(temp[1], is34567[3][2], is34567[4][2]);
+	NR2 nor_1(isStraight34567, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight45678(
+	output isStraight45678,
+	input [3:0] rank0, rank1, rank2, rank3, rank4,
+	output is4, is5, is6, is7, is8
+);
+
+	wire is45678[4:0][2:0];
+	wire record45678[4:0][4:0];
+	wire notRecord45678[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs4 checkIfRankIs4(record45678[i][0], rank[i]);
+			checkIfRankIs5 checkIfRankIs5(record45678[i][1], rank[i]);
+			checkIfRankIs6 checkIfRankIs6(record45678[i][2], rank[i]);
+			checkIfRankIs7 checkIfRankIs7(record45678[i][3], rank[i]);
+			checkIfRankIs8 checkIfRankIs8(record45678[i][4], rank[i]);
+			IV notRecord45678_0(notRecord45678[i][0], record45678[i][0]);
+			IV notRecord45678_1(notRecord45678[i][1], record45678[i][1]);
+			IV notRecord45678_2(notRecord45678[i][2], record45678[i][2]);
+			IV notRecord45678_3(notRecord45678[i][3], record45678[i][3]);
+			IV notRecord45678_4(notRecord45678[i][4], record45678[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is45678[0][0], record45678[0][0], record45678[1][0], record45678[2][0], 1'b0);
+	NR2 nor2_1(is45678[0][1], record45678[3][0], record45678[4][0]);
+	ND2 nand2_1(is45678[0][2], is45678[0][0], is45678[0][1]);
+
+	NR4 nor4_2(is45678[1][0], record45678[0][1], record45678[1][1], record45678[2][1], 1'b0);
+	NR2 nor2_2(is45678[1][1], record45678[3][1], record45678[4][1]);
+	ND2 nand2_2(is45678[1][2], is45678[1][0], is45678[1][1]);
+
+	NR4 nor4_3(is45678[2][0], record45678[0][2], record45678[1][2], record45678[2][2], 1'b0);
+	NR2 nor2_3(is45678[2][1], record45678[3][2], record45678[4][2]);
+	ND2 nand2_3(is45678[2][2], is45678[2][0], is45678[2][1]);
+
+	NR4 nor4_4(is45678[3][0], record45678[0][3], record45678[1][3], record45678[2][3], 1'b0);
+	NR2 nor2_4(is45678[3][1], record45678[3][3], record45678[4][3]);
+	ND2 nand2_4(is45678[3][2], is45678[3][0], is45678[3][1]);
+
+	NR4 nor4_5(is45678[4][0], record45678[0][4], record45678[1][4], record45678[2][4], 1'b0);
+	NR2 nor2_5(is45678[4][1], record45678[3][4], record45678[4][4]);
+	ND2 nand2_5(is45678[4][2], is45678[4][0], is45678[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is45678[0][2], is45678[1][2], is45678[2][2]);
+	ND2 nand2_6(temp[1], is45678[3][2], is45678[4][2]);
+	NR2 nor_1(isStraight45678, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight56789(
+	output isStraight56789,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is56789[4:0][2:0];
+	wire record56789[4:0][4:0];
+	wire notRecord56789[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs5 checkIfRankIs5(record56789[i][0], rank[i]);
+			checkIfRankIs6 checkIfRankIs6(record56789[i][1], rank[i]);
+			checkIfRankIs7 checkIfRankIs7(record56789[i][2], rank[i]);
+			checkIfRankIs8 checkIfRankIs8(record56789[i][3], rank[i]);
+			checkIfRankIs9 checkIfRankIs9(record56789[i][4], rank[i]);
+			IV notRecord56789_0(notRecord56789[i][0], record56789[i][0]);
+			IV notRecord56789_1(notRecord56789[i][1], record56789[i][1]);
+			IV notRecord56789_2(notRecord56789[i][2], record56789[i][2]);
+			IV notRecord56789_3(notRecord56789[i][3], record56789[i][3]);
+			IV notRecord56789_4(notRecord56789[i][4], record56789[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is56789[0][0], record56789[0][0], record56789[1][0], record56789[2][0], 1'b0);
+	NR2 nor2_1(is56789[0][1], record56789[3][0], record56789[4][0]);
+	ND2 nand2_1(is56789[0][2], is56789[0][0], is56789[0][1]);
+
+	NR4 nor4_2(is56789[1][0], record56789[0][1], record56789[1][1], record56789[2][1], 1'b0);
+	NR2 nor2_2(is56789[1][1], record56789[3][1], record56789[4][1]);
+	ND2 nand2_2(is56789[1][2], is56789[1][0], is56789[1][1]);
+
+	NR4 nor4_3(is56789[2][0], record56789[0][2], record56789[1][2], record56789[2][2], 1'b0);
+	NR2 nor2_3(is56789[2][1], record56789[3][2], record56789[4][2]);
+	ND2 nand2_3(is56789[2][2], is56789[2][0], is56789[2][1]);
+
+	NR4 nor4_4(is56789[3][0], record56789[0][3], record56789[1][3], record56789[2][3], 1'b0);
+	NR2 nor2_4(is56789[3][1], record56789[3][3], record56789[4][3]);
+	ND2 nand2_4(is56789[3][2], is56789[3][0], is56789[3][1]);
+
+	NR4 nor4_5(is56789[4][0], record56789[0][4], record56789[1][4], record56789[2][4], 1'b0);
+	NR2 nor2_5(is56789[4][1], record56789[3][4], record56789[4][4]);
+	ND2 nand2_5(is56789[4][2], is56789[4][0], is56789[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is56789[0][2], is56789[1][2], is56789[2][2]);
+	ND2 nand2_6(temp[1], is56789[3][2], is56789[4][2]);
+	NR2 nor_1(isStraight56789, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight678910(
+	output isStraight678910,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is678910[4:0][2:0];
+	wire record678910[4:0][4:0];
+	wire notRecord678910[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs6 checkIfRankIs6(record678910[i][0], rank[i]);
+			checkIfRankIs7 checkIfRankIs7(record678910[i][1], rank[i]);
+			checkIfRankIs8 checkIfRankIs8(record678910[i][2], rank[i]);
+			checkIfRankIs9 checkIfRankIs9(record678910[i][3], rank[i]);
+			checkIfRankIs10 checkIfRankIs10(record678910[i][4], rank[i]);
+			IV notRecord678910_0(notRecord678910[i][0], record678910[i][0]);
+			IV notRecord678910_1(notRecord678910[i][1], record678910[i][1]);
+			IV notRecord678910_2(notRecord678910[i][2], record678910[i][2]);
+			IV notRecord678910_3(notRecord678910[i][3], record678910[i][3]);
+			IV notRecord678910_4(notRecord678910[i][4], record678910[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is678910[0][0], record678910[0][0], record678910[1][0], record678910[2][0], 1'b0);
+	NR2 nor2_1(is678910[0][1], record678910[3][0], record678910[4][0]);
+	ND2 nand2_1(is678910[0][2], is678910[0][0], is678910[0][1]);
+
+	NR4 nor4_2(is678910[1][0], record678910[0][1], record678910[1][1], record678910[2][1], 1'b0);
+	NR2 nor2_2(is678910[1][1], record678910[3][1], record678910[4][1]);
+	ND2 nand2_2(is678910[1][2], is678910[1][0], is678910[1][1]);
+
+	NR4 nor4_3(is678910[2][0], record678910[0][2], record678910[1][2], record678910[2][2], 1'b0);
+	NR2 nor2_3(is678910[2][1], record678910[3][2], record678910[4][2]);
+	ND2 nand2_3(is678910[2][2], is678910[2][0], is678910[2][1]);
+
+	NR4 nor4_4(is678910[3][0], record678910[0][3], record678910[1][3], record678910[2][3], 1'b0);
+	NR2 nor2_4(is678910[3][1], record678910[3][3], record678910[4][3]);
+	ND2 nand2_4(is678910[3][2], is678910[3][0], is678910[3][1]);
+
+	NR4 nor4_5(is678910[4][0], record678910[0][4], record678910[1][4], record678910[2][4], 1'b0);
+	NR2 nor2_5(is678910[4][1], record678910[3][4], record678910[4][4]);
+	ND2 nand2_5(is678910[4][2], is678910[4][0], is678910[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is678910[0][2], is678910[1][2], is678910[2][2]);
+	ND2 nand2_6(temp[1], is678910[3][2], is678910[4][2]);
+	NR2 nor_1(isStraight678910, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight78910J(
+	output isStraight78910J,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is78910J[4:0][2:0];
+	wire record78910J[4:0][4:0];
+	wire notRecord78910J[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs7 checkIfRankIs7(record78910J[i][0], rank[i]);
+			checkIfRankIs8 checkIfRankIs8(record78910J[i][1], rank[i]);
+			checkIfRankIs9 checkIfRankIs9(record78910J[i][2], rank[i]);
+			checkIfRankIs10 checkIfRankIs10(record78910J[i][3], rank[i]);
+			checkIfRankIsJ checkIfRankIsJ(record78910J[i][4], rank[i]);
+			IV notRecord78910J_0(notRecord78910J[i][0], record78910J[i][0]);
+			IV notRecord78910J_1(notRecord78910J[i][1], record78910J[i][1]);
+			IV notRecord78910J_2(notRecord78910J[i][2], record78910J[i][2]);
+			IV notRecord78910J_3(notRecord78910J[i][3], record78910J[i][3]);
+			IV notRecord78910J_4(notRecord78910J[i][4], record78910J[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is78910J[0][0], record78910J[0][0], record78910J[1][0], record78910J[2][0], 1'b0);
+	NR2 nor2_1(is78910J[0][1], record78910J[3][0], record78910J[4][0]);
+	ND2 nand2_1(is78910J[0][2], is78910J[0][0], is78910J[0][1]);
+
+	NR4 nor4_2(is78910J[1][0], record78910J[0][1], record78910J[1][1], record78910J[2][1], 1'b0);
+	NR2 nor2_2(is78910J[1][1], record78910J[3][1], record78910J[4][1]);
+	ND2 nand2_2(is78910J[1][2], is78910J[1][0], is78910J[1][1]);
+
+	NR4 nor4_3(is78910J[2][0], record78910J[0][2], record78910J[1][2], record78910J[2][2], 1'b0);
+	NR2 nor2_3(is78910J[2][1], record78910J[3][2], record78910J[4][2]);
+	ND2 nand2_3(is78910J[2][2], is78910J[2][0], is78910J[2][1]);
+
+	NR4 nor4_4(is78910J[3][0], record78910J[0][3], record78910J[1][3], record78910J[2][3], 1'b0);
+	NR2 nor2_4(is78910J[3][1], record78910J[3][3], record78910J[4][3]);
+	ND2 nand2_4(is78910J[3][2], is78910J[3][0], is78910J[3][1]);
+
+	NR4 nor4_5(is78910J[4][0], record78910J[0][4], record78910J[1][4], record78910J[2][4], 1'b0);
+	NR2 nor2_5(is78910J[4][1], record78910J[3][4], record78910J[4][4]);
+	ND2 nand2_5(is78910J[4][2], is78910J[4][0], is78910J[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is78910J[0][2], is78910J[1][2], is78910J[2][2]);
+	ND2 nand2_6(temp[1], is78910J[3][2], is78910J[4][2]);
+	NR2 nor_1(isStraight78910J, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight8910JQ(
+	output isStraight8910JQ,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is8910JQ[4:0][2:0];
+	wire record8910JQ[4:0][4:0];
+	wire notRecord8910JQ[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+	
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs8 checkIfRankIs8(record8910JQ[i][0], rank[i]);
+			checkIfRankIs9 checkIfRankIs9(record8910JQ[i][1], rank[i]);
+			checkIfRankIs10 checkIfRankIs10(record8910JQ[i][2], rank[i]);
+			checkIfRankIsJ checkIfRankIsJ(record8910JQ[i][3], rank[i]);
+			checkIfRankIsQ checkIfRankIsQ(record8910JQ[i][4], rank[i]);
+			IV notRecord8910JQ_0(notRecord8910JQ[i][0], record8910JQ[i][0]);
+			IV notRecord8910JQ_1(notRecord8910JQ[i][1], record8910JQ[i][1]);
+			IV notRecord8910JQ_2(notRecord8910JQ[i][2], record8910JQ[i][2]);
+			IV notRecord8910JQ_3(notRecord8910JQ[i][3], record8910JQ[i][3]);
+			IV notRecord8910JQ_4(notRecord8910JQ[i][4], record8910JQ[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is8910JQ[0][0], record8910JQ[0][0], record8910JQ[1][0], record8910JQ[2][0], 1'b0);
+	NR2 nor2_1(is8910JQ[0][1], record8910JQ[3][0], record8910JQ[4][0]);
+	ND2 nand2_1(is8910JQ[0][2], is8910JQ[0][0], is8910JQ[0][1]);
+
+	NR4 nor4_2(is8910JQ[1][0], record8910JQ[0][1], record8910JQ[1][1], record8910JQ[2][1], 1'b0);
+	NR2 nor2_2(is8910JQ[1][1], record8910JQ[3][1], record8910JQ[4][1]);
+	ND2 nand2_2(is8910JQ[1][2], is8910JQ[1][0], is8910JQ[1][1]);
+
+	NR4 nor4_3(is8910JQ[2][0], record8910JQ[0][2], record8910JQ[1][2], record8910JQ[2][2], 1'b0);
+	NR2 nor2_3(is8910JQ[2][1], record8910JQ[3][2], record8910JQ[4][2]);
+	ND2 nand2_3(is8910JQ[2][2], is8910JQ[2][0], is8910JQ[2][1]);
+
+	NR4 nor4_4(is8910JQ[3][0], record8910JQ[0][3], record8910JQ[1][3], record8910JQ[2][3], 1'b0);
+	NR2 nor2_4(is8910JQ[3][1], record8910JQ[3][3], record8910JQ[4][3]);
+	ND2 nand2_4(is8910JQ[3][2], is8910JQ[3][0], is8910JQ[3][1]);
+
+	NR4 nor4_5(is8910JQ[4][0], record8910JQ[0][4], record8910JQ[1][4], record8910JQ[2][4], 1'b0);
+	NR2 nor2_5(is8910JQ[4][1], record8910JQ[3][4], record8910JQ[4][4]);
+	ND2 nand2_5(is8910JQ[4][2], is8910JQ[4][0], is8910JQ[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is8910JQ[0][2], is8910JQ[1][2], is8910JQ[2][2]);
+	ND2 nand2_6(temp[1], is8910JQ[3][2], is8910JQ[4][2]);
+	NR2 nor_1(isStraight8910JQ, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight910JQK(
+	output isStraight910JQK,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is910JQK[4:0][2:0];
+	wire record910JQK[4:0][4:0];
+	wire notRecord910JQK[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+	
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs9 checkIfRankIs9(record910JQK[i][0], rank[i]);
+			checkIfRankIs10 checkIfRankIs10(record910JQK[i][1], rank[i]);
+			checkIfRankIsJ checkIfRankIsJ(record910JQK[i][2], rank[i]);
+			checkIfRankIsQ checkIfRankIsQ(record910JQK[i][3], rank[i]);
+			checkIfRankIsK checkIfRankIsK(record910JQK[i][4], rank[i]);
+			IV notRecord910JQK_0(notRecord910JQK[i][0], record910JQK[i][0]);
+			IV notRecord910JQK_1(notRecord910JQK[i][1], record910JQK[i][1]);
+			IV notRecord910JQK_2(notRecord910JQK[i][2], record910JQK[i][2]);
+			IV notRecord910JQK_3(notRecord910JQK[i][3], record910JQK[i][3]);
+			IV notRecord910JQK_4(notRecord910JQK[i][4], record910JQK[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is910JQK[0][0], record910JQK[0][0], record910JQK[1][0], record910JQK[2][0], 1'b0);
+	NR2 nor2_1(is910JQK[0][1], record910JQK[3][0], record910JQK[4][0]);
+	ND2 nand2_1(is910JQK[0][2], is910JQK[0][0], is910JQK[0][1]);
+
+	NR4 nor4_2(is910JQK[1][0], record910JQK[0][1], record910JQK[1][1], record910JQK[2][1], 1'b0);
+	NR2 nor2_2(is910JQK[1][1], record910JQK[3][1], record910JQK[4][1]);
+	ND2 nand2_2(is910JQK[1][2], is910JQK[1][0], is910JQK[1][1]);
+
+	NR4 nor4_3(is910JQK[2][0], record910JQK[0][2], record910JQK[1][2], record910JQK[2][2], 1'b0);
+	NR2 nor2_3(is910JQK[2][1], record910JQK[3][2], record910JQK[4][2]);
+	ND2 nand2_3(is910JQK[2][2], is910JQK[2][0], is910JQK[2][1]);
+
+	NR4 nor4_4(is910JQK[3][0], record910JQK[0][3], record910JQK[1][3], record910JQK[2][3], 1'b0);
+	NR2 nor2_4(is910JQK[3][1], record910JQK[3][3], record910JQK[4][3]);
+	ND2 nand2_4(is910JQK[3][2], is910JQK[3][0], is910JQK[3][1]);
+
+	NR4 nor4_5(is910JQK[4][0], record910JQK[0][4], record910JQK[1][4], record910JQK[2][4], 1'b0);
+	NR2 nor2_5(is910JQK[4][1], record910JQK[3][4], record910JQK[4][4]);
+	ND2 nand2_5(is910JQK[4][2], is910JQK[4][0], is910JQK[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is910JQK[0][2], is910JQK[1][2], is910JQK[2][2]);
+	ND2 nand2_6(temp[1], is910JQK[3][2], is910JQK[4][2]);
+	NR2 nor_1(isStraight910JQK, temp[0], temp[1]);
+
+endmodule
+
+module checkStraight10JQKA(
+	output isStraight10JQKA,
+	input [3:0] rank0, rank1, rank2, rank3, rank4
+);
+
+	wire is10JQKA[4:0][2:0];
+	wire record10JQKA[4:0][4:0];
+	wire notRecord10JQKA[4:0][4:0];
+
+	wire [3:0] rank[4:0];
+	assign rank[0] = rank0;
+	assign rank[1] = rank1;
+	assign rank[2] = rank2;
+	assign rank[3] = rank3;
+	assign rank[4] = rank4;
+	
+	genvar i;
+	generate
+		for (i = 0; i < 5; i = i + 1)
+		begin
+			checkIfRankIs10 checkIfRankIs10(record10JQKA[i][0], rank[i]);
+			checkIfRankIsJ checkIfRankIsJ(record10JQKA[i][1], rank[i]);
+			checkIfRankIsQ checkIfRankIsQ(record10JQKA[i][2], rank[i]);
+			checkIfRankIsK checkIfRankIsK(record10JQKA[i][3], rank[i]);
+			checkIfRankIsA checkIfRankIsA(record10JQKA[i][4], rank[i]);
+			IV notRecord10JQKA_0(notRecord10JQKA[i][0], record10JQKA[i][0]);
+			IV notRecord10JQKA_1(notRecord10JQKA[i][1], record10JQKA[i][1]);
+			IV notRecord10JQKA_2(notRecord10JQKA[i][2], record10JQKA[i][2]);
+			IV notRecord10JQKA_3(notRecord10JQKA[i][3], record10JQKA[i][3]);
+			IV notRecord10JQKA_4(notRecord10JQKA[i][4], record10JQKA[i][4]);
+		end
+	endgenerate
+
+	NR4 nor4_1(is10JQKA[0][0], record10JQKA[0][0], record10JQKA[1][0], record10JQKA[2][0], 1'b0);
+	NR2 nor2_1(is10JQKA[0][1], record10JQKA[3][0], record10JQKA[4][0]);
+	ND2 nand2_1(is10JQKA[0][2], is10JQKA[0][0], is10JQKA[0][1]);
+
+	NR4 nor4_2(is10JQKA[1][0], record10JQKA[0][1], record10JQKA[1][1], record10JQKA[2][1], 1'b0);
+	NR2 nor2_2(is10JQKA[1][1], record10JQKA[3][1], record10JQKA[4][1]);
+	ND2 nand2_2(is10JQKA[1][2], is10JQKA[1][0], is10JQKA[1][1]);
+
+	NR4 nor4_3(is10JQKA[2][0], record10JQKA[0][2], record10JQKA[1][2], record10JQKA[2][2], 1'b0);
+	NR2 nor2_3(is10JQKA[2][1], record10JQKA[3][2], record10JQKA[4][2]);
+	ND2 nand2_3(is10JQKA[2][2], is10JQKA[2][0], is10JQKA[2][1]);
+
+	NR4 nor4_4(is10JQKA[3][0], record10JQKA[0][3], record10JQKA[1][3], record10JQKA[2][3], 1'b0);
+	NR2 nor2_4(is10JQKA[3][1], record10JQKA[3][3], record10JQKA[4][3]);
+	ND2 nand2_4(is10JQKA[3][2], is10JQKA[3][0], is10JQKA[3][1]);
+
+	NR4 nor4_5(is10JQKA[4][0], record10JQKA[0][4], record10JQKA[1][4], record10JQKA[2][4], 1'b0);
+	NR2 nor2_5(is10JQKA[4][1], record10JQKA[3][4], record10JQKA[4][4]);
+	ND2 nand2_5(is10JQKA[4][2], is10JQKA[4][0], is10JQKA[4][1]);
+
+	wire temp[1:0];
+	ND3 nand3_1(temp[0], is10JQKA[0][2], is10JQKA[1][2], is10JQKA[2][2]);
+	ND2 nand2_6(temp[1], is10JQKA[3][2], is10JQKA[4][2]);
+	NR2 nor_1(isStraight10JQKA, temp[0], temp[1]);
+
+endmodule

@@ -157,12 +157,12 @@ module EO(Z,A,B); // 0.343
        input A,B;
        xor u0(Z,A,B);
        // specify block
-specify
-specparam Tp_A_Z=0.343;
-specparam Tp_B_Z=0.308;
-( A *> Z ) = ( Tp_A_Z,Tp_A_Z );
-( B *> Z ) = ( Tp_B_Z,Tp_B_Z );
-endspecify
+    specify
+    specparam Tp_A_Z=0.343;
+    specparam Tp_B_Z=0.308;
+    ( A *> Z ) = ( Tp_A_Z,Tp_A_Z );
+    ( B *> Z ) = ( Tp_B_Z,Tp_B_Z );
+    endspecify
 endmodule
 
 
