@@ -507,7 +507,6 @@ module straightDetector(
 	checkStraight910JQK checkStraight910JQK(isStraight910JQK, rank[0], rank[1], rank[2], rank[3], rank[4]);
 	checkStraight10JQKA checkStraight10JQKA(isStraight10JQKA, rank[0], rank[1], rank[2], rank[3], rank[4]);
 
-	// or or_1(isStraight, isStraightA2345, isStraight23456, isStraight34567, isStraight45678, isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ, isStraight910JQK, isStraight10JQKA);
 	wire temp[2:0];
 	NR4 isStraight_gate0(temp[0], isStraightA2345, isStraight23456, isStraight34567, isStraight45678);
 	NR4 isStraight_gate1(temp[1], isStraight56789, isStraight678910, isStraight78910J, isStraight8910JQ);
@@ -560,10 +559,14 @@ module poker(type, i0, i1, i2, i3, i4);
 	ND2 flush_gate(notFlush, isFlush, isNotStraight);
 	ND2 straight_gate(notStraight, isStraight, isNotFlush);
 
+	wire temp[2:0];
+	AN2 temp_gate0(temp[2], isNotFourOfAKind, isNotFullHouse);
+	AN3 temp_gate2(temp[0], isNotFourOfAKind, isNotThreeOfAKind, isNotOnlyOnePair);
+
 	HA1 type_3(.O(type[3]), .A(isFlush), .B(isStraight));
-	ND4 type_2(type[2], isNotFourOfAKind, isNotFullHouse, notFlush, notStraight); // four of a kind, full house, flush, straight
+	ND3 type_2(type[2], temp[2], notFlush, notStraight);  									 // four of a kind, full house, flush, straight
 	ND4 type_1(type[1], isNotFourOfAKind, isNotFullHouse, isNotThreeOfAKind, isNotTwoPairs); // four of a kind, full house, three of a kind, two pairs
-	ND4 type_0(type[0], isNotFourOfAKind, notFlush, isNotThreeOfAKind, isNotOnlyOnePair); // four of a kind, flush, three of a kind, one pair
+	ND2 type_0(type[0], temp[0], notFlush);  												 // four of a kind, flush, three of a kind, one pair
 
 endmodule
 
@@ -578,6 +581,7 @@ endmodule
 	one pair:          0001
 	high card:         0000
 */
+
 module checkIfRankIsA( // 4'b0001
 	output isRankA,
 	input [3:0] rank
